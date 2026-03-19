@@ -1,0 +1,72 @@
+name: plantogether_app
+description: PlanTogether — collaborative travel planning app (iOS, Android, Web)
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Navigation
+  go_router: ^13.2.0
+
+  # State management
+  flutter_bloc: ^8.1.5
+  equatable: ^2.0.5
+
+  # HTTP + Auth
+  dio: ^5.4.3
+  flutter_appauth: ^7.0.1
+  flutter_secure_storage: ^9.0.0
+
+  # WebSocket (STOMP)
+  stomp_dart_client: ^1.1.0
+
+  # Local storage
+  shared_preferences: ^2.2.3
+
+  # UI
+  material_color_utilities: ^0.11.1
+  cached_network_image: ^3.3.1
+  image_picker: ^1.1.2
+  file_picker: ^8.0.3
+  intl: ^0.19.0
+
+  # Firebase (FCM)
+  firebase_core: ^2.31.1
+  firebase_messaging: ^14.9.1
+
+  # Utilities
+  json_annotation: ^4.9.0
+  freezed_annotation: ^2.4.1
+  logger: ^2.3.0
+  uuid: ^4.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.9
+  json_serializable: ^6.8.0
+  freezed: ^2.5.2
+  mocktail: ^1.0.3
+  bloc_test: ^9.1.7
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
