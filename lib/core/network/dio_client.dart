@@ -1,20 +1,23 @@
 import 'package:dio/dio.dart';
-import '../security/auth_service.dart';
+import '../security/device_id_service.dart';
 
 class DioClient {
   late final Dio _dio;
-  final AuthService _authService;
+  final DeviceIdService _deviceIdService;
 
-  DioClient(this._authService) {
+  DioClient(this._deviceIdService) {
     _dio = Dio(BaseOptions(
-      baseUrl: const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://10.0.2.2:8080'),
+      baseUrl: const String.fromEnvironment(
+        'API_BASE_URL',
+        defaultValue: 'http://10.0.2.2:8080',
+      ),
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 30),
     ));
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final token = await _authService.getAccessToken();
-        if (token != null) options.headers['Authorization'] = 'Bearer $token';
+        final deviceId = await _deviceIdService.getOrCreateDeviceId();
+        options.headers['X-Device-Id'] = deviceId;
         handler.next(options);
       },
     ));

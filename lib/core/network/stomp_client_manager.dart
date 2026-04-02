@@ -1,18 +1,21 @@
 import 'package:stomp_dart_client/stomp_dart_client.dart';
-import '../security/auth_service.dart';
+import '../security/device_id_service.dart';
 
 class StompClientManager {
   StompClient? _client;
-  final AuthService _authService;
+  final DeviceIdService _deviceIdService;
 
-  StompClientManager(this._authService);
+  StompClientManager(this._deviceIdService);
 
   Future<void> connect({required String tripId}) async {
-    final token = await _authService.getAccessToken();
+    final deviceId = await _deviceIdService.getOrCreateDeviceId();
     _client = StompClient(
-      config: StompConfig.SockJS(
-        url: const String.fromEnvironment('WS_URL', defaultValue: 'http://10.0.2.2:8080/ws'),
-        connectHeaders: {'Authorization': 'Bearer $token'},
+      config: StompConfig.sockJS(
+        url: const String.fromEnvironment(
+          'WS_URL',
+          defaultValue: 'http://10.0.2.2:8080/ws',
+        ),
+        stompConnectHeaders: {'X-Device-Id': deviceId},
         onConnect: (frame) {
           _client!.subscribe(
             destination: '/topic/trips/$tripId',
