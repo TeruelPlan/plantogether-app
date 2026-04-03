@@ -5,6 +5,9 @@ import 'core/network/stomp_client_manager.dart';
 import 'core/router/app_router.dart';
 import 'core/security/device_id_service.dart';
 import 'core/theme/app_theme.dart';
+import 'features/profile/data/datasource/profile_remote_datasource.dart';
+import 'features/profile/data/repository/profile_repository_impl.dart';
+import 'features/profile/domain/repository/profile_repository.dart';
 
 class PlanTogetherApp extends StatelessWidget {
   const PlanTogetherApp({super.key});
@@ -18,6 +21,12 @@ class PlanTogetherApp extends StatelessWidget {
             create: (ctx) => DioClient(ctx.read<DeviceIdService>())),
         RepositoryProvider(
             create: (ctx) => StompClientManager(ctx.read<DeviceIdService>())),
+        RepositoryProvider(
+            create: (ctx) =>
+                ProfileRemoteDatasource(ctx.read<DioClient>())),
+        RepositoryProvider<ProfileRepository>(
+            create: (ctx) => ProfileRepositoryImpl(
+                ctx.read<ProfileRemoteDatasource>())),
       ],
       child: const _AppContent(),
     );
