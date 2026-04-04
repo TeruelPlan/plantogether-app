@@ -39,25 +39,25 @@ flutter build web --release          # Web
 ## Architecture
 
 Flutter 3.19+ / Dart 3.x cross-platform app (iOS, Android, Web). Clean Architecture with feature-based modules.
-The app communicates exclusively with Traefik (`/api/v1/`) via REST — it has no awareness of the
-microservices behind it.
+The app communicates exclusively with the backend via REST — routed through Traefik (`/api/v1/`) in production, or directly to a service in development.
 
 ### Project structure
 
 ```
 lib/
-├── main.dart                   # App entry point + Firebase init
-├── app.dart                    # MaterialApp + GoRouter + theme
+├── main.dart                   # App entry point
+├── app.dart                    # MaterialApp + GoRouter + theme + RepositoryProviders
 ├── core/
-│   ├── auth/                   # OIDC/PKCE flow (flutter_appauth + flutter_secure_storage)
-│   ├── constants/              # Gateway URL, Keycloak config, route names
-│   ├── network/                # DioClient (BaseOptions, interceptors), StompClient
-│   ├── security/               # Token refresh interceptor, secure storage helpers
-│   ├── theme/                  # Material 3 theme (Inter font, color scheme)
+│   ├── constants/              # API base URL, route names
+│   ├── network/                # DioClient (BaseOptions, X-Device-Id interceptor), StompClientManager
+│   ├── router/                 # AppRouter (GoRouter config, onboarding redirect)
+│   ├── security/               # DeviceIdService (device UUID + display name via flutter_secure_storage)
+│   ├── theme/                  # Material 3 theme (AppTheme light/dark)
 │   └── utils/                  # Formatters, validators, extensions
 ├── features/
-│   ├── auth/                   # Login / PKCE callback / logout
-│   ├── home/                   # Dashboard — user's trips list
+│   ├── splash/                 # Splash screen (initialization gate)
+│   ├── onboarding/             # First-launch display name setup
+│   ├── home/                   # Dashboard — user's trips list + FAB to create trip
 │   ├── trip/                   # Trip CRUD, members, invitations (QR / deep link)
 │   ├── poll/                   # Date polls — matrix view, YES/MAYBE/NO voting
 │   ├── destination/            # Destination proposals + voting + comments
@@ -66,7 +66,7 @@ lib/
 │   ├── chat/                   # Real-time STOMP chat
 │   ├── notification/           # Notification preferences + FCM token registration
 │   ├── file/                   # Presigned URL upload/download helpers
-│   └── profile/                # User profile settings
+│   └── profile/                # User profile + settings (display name)
 └── shared/
     ├── providers/              # Shared BLoC / state
     ├── widgets/                # Reusable UI components (MemberAvatar, TripCard, etc.)
@@ -83,29 +83,35 @@ Each feature follows Clean Architecture layers: `data/` (repositories, DTOs, dat
 - `*Event` — immutable inputs (Equatable)
 - `*State` — immutable outputs (Freezed)
 
+**Do NOT use Riverpod** — this project uses `flutter_bloc` exclusively.
+
 ### Navigation
 
-**GoRouter** (`go_router` v13) — declarative, deep-link-aware. Routes defined in `core/constants/`.
-Auth guard redirects unauthenticated users to `/login`.
+**GoRouter** (`go_router` v13) — declarative, deep-link-aware. Routes defined in `core/constants/route_constants.dart`.
+Onboarding guard redirects to `/onboarding` if no display name is set.
+Use `context.push()` for stack navigation, `context.go()` for replacement.
 
-### Authentication (OIDC + PKCE)
+### Authentication (Device-Based Identity)
 
-`flutter_appauth` handles the Authorization Code + PKCE flow against Keycloak:
-1. Opens system browser → Keycloak `/realms/plantogether/protocol/openid-connect/auth`
-2. Redirect to `com.plantogether://callback`
-3. Exchanges code + code_verifier for `access_token` (5 min) + `refresh_token` (30 days)
-4. Tokens stored in `flutter_secure_storage` (Keychain iOS / Keystore Android)
+**No login, no JWT, no Keycloak, no OIDC.** Identity is anonymous and device-based:
 
-Every HTTP request includes `Authorization: Bearer {access_token}`. The Dio `AuthInterceptor` in
-`core/network/` handles transparent token refresh on 401.
+1. On first launch, `DeviceIdService` generates a UUID v4 and stores it in `flutter_secure_storage`
+2. Every HTTP request includes `X-Device-Id: {device-uuid}` header (injected automatically by `DioClient` interceptor)
+3. The backend `DeviceIdFilter` validates the UUID and sets the SecurityContext principal
+4. No tokens, no expiry, no refresh logic
+
+`DeviceIdService` (`lib/core/security/device_id_service.dart`) also manages the local display name:
+- `getOrCreateDeviceId()` — returns existing or generates new UUID
+- `getDisplayName()` / `setDisplayName(name)` — local display name in `flutter_secure_storage`
 
 ### HTTP client
 
 **Dio** (`dio` v5) configured in `core/network/DioClient`. Interceptors:
-- `AuthInterceptor` — injects Bearer token, refreshes on 401
+- `X-Device-Id` interceptor — injects device UUID header on every request
 - Logging interceptor (debug only)
 
-Base URL: `GATEWAY_URL` constant in `core/constants/` (e.g. `https://api.plantogether.com/api/v1`).
+Base URL: `API_BASE_URL` env var (defaults to `http://127.0.0.1:8081` in dev).
+In production, points to Traefik gateway (`https://api.plantogether.com`).
 
 ### WebSocket (STOMP)
 
@@ -115,12 +121,12 @@ Base URL: `GATEWAY_URL` constant in `core/constants/` (e.g. `https://api.plantog
 - Subscribe `/user/queue/notifications` — private notifications
 - Send `/app/trips/{tripId}/chat` — send a message
 
-Bearer token passed in STOMP `connect` headers.
+Device ID passed in STOMP `connect` headers.
 
 ### Local storage
 
-`shared_preferences` for non-sensitive user preferences (theme, language, notification settings).
-`flutter_secure_storage` exclusively for auth tokens.
+`flutter_secure_storage` exclusively for device UUID and display name.
+No `shared_preferences` currently used.
 
 ### Push notifications (FCM)
 
@@ -139,10 +145,8 @@ Freezed (`freezed` + `freezed_annotation`) for immutable models and union types.
 | `flutter_bloc` | ^8.1.5 | State management (BLoC pattern) |
 | `go_router` | ^13.2.0 | Navigation + deep links |
 | `dio` | ^5.4.3 | HTTP client with interceptors |
-| `flutter_appauth` | ^7.0.1 | OIDC/PKCE authentication |
-| `flutter_secure_storage` | ^9.0.0 | Secure token storage |
+| `flutter_secure_storage` | ^9.0.0 | Device UUID + display name storage |
 | `stomp_dart_client` | ^1.1.0 | WebSocket STOMP (chat) |
-| `shared_preferences` | ^2.2.3 | Non-sensitive local preferences |
 | `firebase_core` + `firebase_messaging` | ^2 / ^14 | FCM push notifications |
 | `freezed` + `freezed_annotation` | ^2.5 / ^2.4 | Immutable models + unions |
 | `json_serializable` + `json_annotation` | ^6.8 / ^4.9 | JSON serialisation |
@@ -151,23 +155,21 @@ Freezed (`freezed` + `freezed_annotation`) for immutable models and union types.
 | `intl` | ^0.19.0 | Internationalisation + date formatting |
 | `equatable` | ^2.0.5 | Value equality for BLoC events/states |
 | `uuid` | ^4.4.0 | UUID generation client-side |
+| `qr_flutter` | — | QR code generation (trip invitations) |
+| `fl_chart` | — | Charts (budget pie chart) |
 
 ### Environment / configuration
 
-Keycloak and API URLs are defined as constants in `lib/core/constants/`. For multi-environment builds,
-use `--dart-define` flags or a `config/` directory with per-environment files.
+API URL is defined via `--dart-define` flag or defaults:
 
 ```
-GATEWAY_URL=https://api.plantogether.com
-KEYCLOAK_URL=https://auth.plantogether.com
-KEYCLOAK_REALM=plantogether
-KEYCLOAK_CLIENT_ID=plantogether-app
-KEYCLOAK_REDIRECT_URI=com.plantogether://callback
+API_BASE_URL=https://api.plantogether.com   # production (Traefik gateway)
+API_BASE_URL=http://127.0.0.1:8081          # development (direct to trip-service)
 ```
 
 ### Testing conventions
 
-- **Unit:** BLoC tests with `bloc_test`, repository tests with `mocktail`
+- **Unit:** BLoC tests with `bloc_test`, repository tests with `mocktail` (NOT mockito)
 - **Widget:** `flutter_test` for individual components and forms
 - **Integration:** `integration_test` package for full end-to-end flows on emulator
 

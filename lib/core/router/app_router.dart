@@ -11,6 +11,11 @@ import '../../features/profile/presentation/page/profile_page.dart';
 import '../../features/profile/domain/repository/profile_repository.dart';
 import '../../features/profile/presentation/bloc/settings_bloc.dart';
 import '../../features/profile/presentation/page/settings_page.dart';
+import '../../features/trip/domain/model/trip_model.dart';
+import '../../features/trip/domain/repository/trip_repository.dart';
+import '../../features/trip/presentation/bloc/create_trip_bloc.dart';
+import '../../features/trip/presentation/pages/create_trip_page.dart';
+import '../../features/trip/presentation/pages/trip_workspace_page.dart';
 
 class _OnboardingNotifier extends ChangeNotifier {
   final DeviceIdService _svc;
@@ -82,6 +87,26 @@ class AppRouter {
             create: (ctx) => SettingsBloc(ctx.read<DeviceIdService>()),
             child: const SettingsPage(),
           ),
+        ),
+        GoRoute(
+          path: RouteConstants.createTrip,
+          name: 'createTrip',
+          builder: (ctx, state) => BlocProvider(
+            create: (ctx) => CreateTripBloc(ctx.read<TripRepository>()),
+            child: const CreateTripPage(),
+          ),
+        ),
+        GoRoute(
+          path: RouteConstants.tripWorkspace,
+          name: 'tripWorkspace',
+          builder: (ctx, state) {
+            final tripId = state.pathParameters['id']!;
+            final trip = state.extra as TripModel?;
+            return TripWorkspacePage(
+              tripId: tripId,
+              tripTitle: trip?.title ?? 'Trip',
+            );
+          },
         ),
       ],
     );
