@@ -8,6 +8,12 @@ class TripRepositoryImpl implements TripRepository {
   TripRepositoryImpl(this._remoteDatasource);
 
   @override
+  Future<TripModel> getTrip(String tripId) async {
+    final dto = await _remoteDatasource.getTrip(tripId);
+    return dto.toDomain();
+  }
+
+  @override
   Future<TripModel> createTrip({
     required String title,
     String? description,
