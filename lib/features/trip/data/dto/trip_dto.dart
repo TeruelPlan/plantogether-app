@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../domain/model/trip_model.dart';
+import 'trip_member_dto.dart';
 
 part 'trip_dto.g.dart';
 
@@ -16,6 +17,8 @@ class TripDto {
   final String createdBy;
   final String createdAt;
   final String updatedAt;
+  final int? memberCount;
+  final List<TripMemberDto>? members;
 
   const TripDto({
     required this.id,
@@ -28,6 +31,8 @@ class TripDto {
     required this.createdBy,
     required this.createdAt,
     required this.updatedAt,
+    this.memberCount,
+    this.members,
   });
 
   factory TripDto.fromJson(Map<String, dynamic> json) =>
@@ -46,5 +51,7 @@ class TripDto {
         createdBy: createdBy,
         createdAt: createdAt,
         updatedAt: updatedAt,
+        memberCount: memberCount ?? members?.length ?? 0,
+        members: members?.map((m) => m.toDomain()).toList() ?? [],
       );
 }

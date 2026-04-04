@@ -11,9 +11,9 @@ import '../../features/profile/presentation/page/profile_page.dart';
 import '../../features/profile/domain/repository/profile_repository.dart';
 import '../../features/profile/presentation/bloc/settings_bloc.dart';
 import '../../features/profile/presentation/page/settings_page.dart';
-import '../../features/trip/domain/model/trip_model.dart';
 import '../../features/trip/domain/repository/trip_repository.dart';
 import '../../features/trip/presentation/bloc/create_trip_bloc.dart';
+import '../../features/trip/presentation/bloc/trip_detail_bloc.dart';
 import '../../features/trip/presentation/pages/create_trip_page.dart';
 import '../../features/trip/presentation/pages/trip_workspace_page.dart';
 
@@ -101,10 +101,9 @@ class AppRouter {
           name: 'tripWorkspace',
           builder: (ctx, state) {
             final tripId = state.pathParameters['id']!;
-            final trip = state.extra as TripModel?;
-            return TripWorkspacePage(
-              tripId: tripId,
-              tripTitle: trip?.title ?? 'Trip',
+            return BlocProvider(
+              create: (ctx) => TripDetailBloc(ctx.read<TripRepository>()),
+              child: TripWorkspacePage(tripId: tripId),
             );
           },
         ),

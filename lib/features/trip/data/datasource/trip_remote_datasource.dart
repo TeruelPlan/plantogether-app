@@ -6,6 +6,11 @@ class TripRemoteDatasource {
 
   TripRemoteDatasource(this._dioClient);
 
+  Future<TripDto> getTrip(String tripId) async {
+    final response = await _dioClient.dio.get('/api/v1/trips/$tripId');
+    return TripDto.fromJson(response.data);
+  }
+
   Future<TripDto> createTrip({
     required String title,
     String? description,
