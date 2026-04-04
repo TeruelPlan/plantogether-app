@@ -1,30 +1,29 @@
 # PlanTogether Flutter Application
 
-> Application mobile multi-plateforme (iOS, Android) et web PWA pour la planification collaborative de voyages
+> Cross-platform mobile (iOS, Android) and web PWA application for collaborative travel planning
 
-## Rôle dans l'architecture
+## Role in the Architecture
 
-L'application Flutter est le client unique de PlanTogether. Elle communique avec les microservices backend
-**uniquement via Traefik** (reverse proxy) à travers des endpoints REST unifiés. Elle ne connaît pas la
-décomposition en microservices. La résolution des noms d'utilisateurs se fait côté Flutter (à partir de la
-liste des membres maintenue en mémoire), ce qui évite tout stockage de PII côté serveur dans les services
-autre que le Trip Service.
+The Flutter app is the single client of PlanTogether. It communicates with the backend microservices
+**exclusively via Traefik** (reverse proxy) through unified REST endpoints. It is unaware of the
+microservice decomposition. User name resolution is performed client-side by Flutter (from the member
+list kept in memory), which avoids any PII storage on the server side in services other than the Trip Service.
 
-## Fonctionnalités
+## Features
 
-- Authentification OIDC + PKCE via Keycloak (flux Authorization Code)
-- Gestion complète des voyages (création, membres, invitations QR code)
-- Sondages de dates (vote YES / MAYBE / NO)
-- Propositions et votes de destinations
-- Gestion du budget partagé (dépenses, répartition, équilibrage)
-- To-do list collaborative (tâches, sous-tâches, deadlines)
-- Chat groupe temps réel (WebSocket STOMP)
-- Notifications push (FCM) et in-app
-- Mode offline (cache Hive)
+- Anonymous device-based identity (no login, no account creation)
+- Full trip management (creation, members, QR code / deep link invitations)
+- Date polls (vote YES / MAYBE / NO)
+- Destination proposals and voting
+- Shared budget tracking (expenses, splits, balance chart)
+- Collaborative to-do list (tasks, subtasks, deadlines)
+- Real-time group chat (WebSocket STOMP)
+- Push notifications (FCM) and in-app
+- Offline mode (local cache)
 
-## Architecture technique
+## Technical Architecture
 
-L'application suit une **Clean Architecture** avec des modules par feature :
+The application follows a **Clean Architecture** with feature-based modules:
 
 ```
 plantogether-app/
@@ -32,10 +31,10 @@ plantogether-app/
 │   ├── main.dart
 │   ├── app.dart                      # MaterialApp, GoRouter, Material 3 theme
 │   ├── core/
-│   │   ├── auth/                     # PKCE (flutter_appauth), token storage sécurisé
-│   │   ├── network/                  # DioClient, AuthInterceptor, StompClient
+│   │   ├── security/                 # DeviceIdService (UUID generation + storage)
+│   │   ├── network/                  # DioClient (X-Device-Id interceptor), StompClient
 │   │   ├── theme/                    # Material 3 theme
-│   │   └── constants/                # Gateway URL, Keycloak config
+│   │   └── constants/                # Gateway URL
 │   ├── features/
 │   │   ├── home/                     # Dashboard
 │   │   ├── trip/                     # data/ domain/ presentation/
@@ -43,67 +42,62 @@ plantogether-app/
 │   │   ├── destination/
 │   │   ├── expense/
 │   │   ├── task/
-│   │   ├── chat/                     # Client STOMP
+│   │   ├── chat/                     # STOMP client
 │   │   ├── notification/
-│   │   └── profile/                  # Settings, préférences notifications
+│   │   └── profile/                  # Settings, notification preferences
 │   └── shared/                       # Widgets, providers, utils
 ├── test/
 └── pubspec.yaml
 ```
 
-Chaque feature contient trois couches :
-- `data/` — repositories, datasources (Dio + Hive), DTOs
-- `domain/` — entités métier, use cases, interfaces repository
-- `presentation/` — widgets, pages, Riverpod providers
+Each feature contains three layers:
+- `data/` — repositories, datasources (Dio + local cache), DTOs
+- `domain/` — business entities, use cases, repository interfaces
+- `presentation/` — widgets, pages, BLoC providers
 
-## Flux d'authentification (OIDC + PKCE)
+## Authentication (Device-Based Identity)
 
-1. L'utilisateur appuie sur « Se connecter »
-2. Flutter génère un `code_verifier` + `code_challenge` (SHA-256)
-3. Flutter ouvre le navigateur système vers Keycloak (`/realms/plantogether/protocol/openid-connect/auth`)
-4. L'utilisateur s'authentifie (email/mdp ou OAuth Google/Apple/Facebook)
-5. Keycloak redirige vers `com.plantogether://callback?code={code}`
-6. Flutter échange `code` + `code_verifier` contre `access_token` (5 min) + `refresh_token` (30 jours)
-7. Tokens stockés dans `flutter_secure_storage` (Keychain iOS / Keystore Android)
-8. Chaque appel API inclut le header `Authorization: Bearer {access_token}`
-9. Traefik route vers le microservice cible qui valide le JWT
+**No login, no JWT, no Keycloak, no OIDC, no tokens, no sessions.**
 
-## Packages principaux
+1. On first launch, `DeviceIdService` generates a UUID v4 and stores it in `flutter_secure_storage` (Keychain iOS / Keystore Android)
+2. Every API call includes the `X-Device-Id: {device-uuid}` header (injected automatically by the Dio interceptor)
+3. The backend `DeviceIdFilter` validates the UUID and sets the SecurityContext principal
+4. No token expiry, no refresh logic
+
+## Key Packages
 
 | Package | Usage |
 |---------|-------|
-| `flutter_appauth` | Flux OIDC + PKCE avec Keycloak |
-| `flutter_secure_storage` | Stockage sécurisé des tokens (Keychain / Keystore) |
-| `dio` | Client HTTP avec intercepteurs (auth, retry, logging) |
-| `flutter_riverpod` | State management réactif |
-| `go_router` | Navigation déclarative, deep linking |
-| `stomp_dart_client` | Client WebSocket STOMP (chat temps réel) |
-| `hive_flutter` | Cache local pour le mode offline |
-| `fl_chart` | Graphiques (camembert budget) |
-| `firebase_messaging` | Notifications push FCM |
-| `qr_flutter` | Génération QR codes (invitations) |
-| `freezed` + `json_serializable` | Modèles immuables + sérialisation JSON |
-| `intl` | Internationalisation et formatage |
+| `flutter_secure_storage` | Device UUID and display name storage (Keychain / Keystore) |
+| `flutter_bloc` | State management (BLoC pattern) |
+| `dio` | HTTP client with interceptors (X-Device-Id, retry, logging) |
+| `go_router` | Declarative navigation, deep linking |
+| `stomp_dart_client` | WebSocket STOMP client (real-time chat) |
+| `firebase_messaging` | FCM push notifications |
+| `freezed` + `json_serializable` | Immutable models + JSON serialization |
+| `fl_chart` | Charts (budget pie chart) |
+| `qr_flutter` | QR code generation (invitations) |
+| `intl` | Internationalization and formatting |
 
-## Commandes
+## Commands
 
 ```bash
 cd plantogether-app
 
-# Installer les dépendances
+# Install dependencies
 flutter pub get
 
-# Générer les modèles (freezed, Hive adapters)
+# Generate models (freezed, adapters)
 flutter packages pub run build_runner build
 
-# Lancer en développement
+# Run in development
 flutter run -d chrome                        # Web
-flutter run                                  # Mobile (émulateur ou device)
+flutter run                                  # Mobile (emulator or device)
 
 # Tests
-flutter test                                 # Tous les tests
-flutter test test/features/trip/             # Feature spécifique
-flutter test --coverage                      # Avec rapport de couverture
+flutter test                                 # All tests
+flutter test test/features/trip/             # Specific feature
+flutter test --coverage                      # With coverage report
 
 # Build
 flutter build apk                            # Android
@@ -113,7 +107,7 @@ flutter build web                            # Web PWA
 
 ## Configuration
 
-La Gateway URL et la configuration Keycloak sont définies dans `lib/core/constants/` :
+The Gateway URL is defined in `lib/core/constants/`:
 
 ```dart
 // gateway_config.dart
@@ -121,31 +115,25 @@ const String gatewayBaseUrl = String.fromEnvironment(
   'GATEWAY_URL',
   defaultValue: 'http://localhost:80',
 );
-
-// keycloak_config.dart
-const String keycloakUrl = 'http://localhost:8080';
-const String keycloakRealm = 'plantogether';
-const String keycloakClientId = 'plantogether-app';
-const String redirectUri = 'com.plantogether://callback';
 ```
 
-## Stratégie de déploiement
+## Deployment Strategy
 
-- **Web PWA** : déployé sur Vercel via GitHub Actions
-- **Android** : `flutter build appbundle` + upload Google Play (Fastlane)
-- **iOS** : `flutter build ipa` + upload TestFlight (Fastlane)
+- **Web PWA**: deployed on Vercel via GitHub Actions
+- **Android**: `flutter build appbundle` + upload to Google Play (Fastlane)
+- **iOS**: `flutter build ipa` + upload to TestFlight (Fastlane)
 
-## Architecture des tests
+## Test Architecture
 
-| Niveau | Outil | Cible | Couverture |
-|--------|-------|-------|------------|
-| Unitaires | `flutter_test` | Riverpod providers, use cases, repositories | > 80% |
-| Widget | `flutter_test` (widget) | Composants UI, formulaires | > 70% |
-| E2E | `integration_test` | Parcours complets sur émulateur | Parcours critiques |
+| Level | Tool | Target | Coverage |
+|-------|------|--------|----------|
+| Unit | `flutter_test` | BLoC providers, use cases, repositories | > 80% |
+| Widget | `flutter_test` (widget) | UI components, forms | > 70% |
+| E2E | `integration_test` | Full flows on emulator | Critical paths |
 
-## Sécurité
+## Security
 
-- Tokens stockés exclusivement dans `flutter_secure_storage` (jamais en localStorage)
-- TLS 1.3 sur toutes les communications réseau
-- PKCE protège contre l'interception de l'`authorization_code`
-- Refresh token rotation automatique via `flutter_appauth`
+- Device UUID stored exclusively in `flutter_secure_storage` (never in localStorage)
+- TLS 1.3 on all network communications
+- `X-Device-Id` header injected automatically on every request
+- No tokens, no secrets stored client-side beyond the device UUID
