@@ -16,9 +16,19 @@ class HomePage extends StatelessWidget {
             tooltip: 'Profile',
             onPressed: () => context.go(RouteConstants.profile),
           ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Settings',
+            onPressed: () => context.push(RouteConstants.settings),
+          ),
         ],
       ),
       body: const Center(child: Text('Home')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push(RouteConstants.createTrip),
+        tooltip: 'New Trip',
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }

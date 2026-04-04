@@ -1,6 +1,4 @@
-import '../../domain/model/trip_invitation_model.dart';
 import '../../domain/model/trip_model.dart';
-import '../../domain/model/trip_preview_model.dart';
 import '../../domain/repository/trip_repository.dart';
 import '../datasource/trip_remote_datasource.dart';
 
@@ -20,24 +18,6 @@ class TripRepositoryImpl implements TripRepository {
       description: description,
       currency: currency,
     );
-    return dto.toDomain();
-  }
-
-  @override
-  Future<TripInvitationModel> getInvitation(String tripId) async {
-    final dto = await _remoteDatasource.getInvitation(tripId);
-    return dto.toDomain();
-  }
-
-  @override
-  Future<TripPreviewModel> getTripPreview(String tripId, String token) async {
-    final dto = await _remoteDatasource.getTripPreview(tripId, token);
-    return dto.toDomain();
-  }
-
-  @override
-  Future<TripModel> joinTrip(String tripId, String token) async {
-    final dto = await _remoteDatasource.joinTrip(tripId, token);
     return dto.toDomain();
   }
 }

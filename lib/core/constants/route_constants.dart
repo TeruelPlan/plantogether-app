@@ -6,6 +6,4 @@ class RouteConstants {
   static const settings = '/settings';
   static const createTrip = '/trips/create';
   static const tripWorkspace = '/trips/:id';
-  static const invite = '/trips/:id/invite';
-  static const tripPreview = '/trips/:id/join';
 }

@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 class TripWorkspacePage extends StatelessWidget {
   final String tripId;
   final String tripTitle;
-  final bool isOrganizer;
 
   const TripWorkspacePage({
     super.key,
     required this.tripId,
     required this.tripTitle,
-    this.isOrganizer = false,
   });
 
   @override
@@ -20,17 +17,6 @@ class TripWorkspacePage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(tripTitle),
-          actions: [
-            if (isOrganizer)
-              IconButton(
-                icon: const Icon(Icons.person_add),
-                tooltip: 'Invite members',
-                onPressed: () => context.push(
-                  '/trips/$tripId/invite',
-                  extra: tripTitle,
-                ),
-              ),
-          ],
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Overview'),

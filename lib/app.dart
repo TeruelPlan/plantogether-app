@@ -8,6 +8,9 @@ import 'core/theme/app_theme.dart';
 import 'features/profile/data/datasource/profile_remote_datasource.dart';
 import 'features/profile/data/repository/profile_repository_impl.dart';
 import 'features/profile/domain/repository/profile_repository.dart';
+import 'features/trip/data/datasource/trip_remote_datasource.dart';
+import 'features/trip/data/repository/trip_repository_impl.dart';
+import 'features/trip/domain/repository/trip_repository.dart';
 
 class PlanTogetherApp extends StatelessWidget {
   const PlanTogetherApp({super.key});
@@ -27,6 +30,12 @@ class PlanTogetherApp extends StatelessWidget {
         RepositoryProvider<ProfileRepository>(
             create: (ctx) => ProfileRepositoryImpl(
                 ctx.read<ProfileRemoteDatasource>())),
+        RepositoryProvider(
+            create: (ctx) =>
+                TripRemoteDatasource(ctx.read<DioClient>())),
+        RepositoryProvider<TripRepository>(
+            create: (ctx) => TripRepositoryImpl(
+                ctx.read<TripRemoteDatasource>())),
       ],
       child: const _AppContent(),
     );
