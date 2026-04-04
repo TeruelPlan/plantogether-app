@@ -27,6 +27,10 @@ dependencies:
   # Local storage
   shared_preferences: ^2.2.3
 
+  # QR code + sharing
+  qr_flutter: ^4.1.0
+  share_plus: ^10.0.0
+
   # UI
   material_color_utilities: ^0.13.0
   cached_network_image: ^3.3.1
