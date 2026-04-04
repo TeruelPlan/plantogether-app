@@ -24,6 +24,11 @@ class HomePage extends StatelessWidget {
         ],
       ),
       body: const Center(child: Text('Home')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push(RouteConstants.createTrip),
+        tooltip: 'New Trip',
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }
