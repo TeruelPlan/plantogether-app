@@ -9,6 +9,8 @@ import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/bloc/profile_bloc.dart';
 import '../../features/profile/presentation/page/profile_page.dart';
 import '../../features/profile/domain/repository/profile_repository.dart';
+import '../../features/profile/presentation/bloc/settings_bloc.dart';
+import '../../features/profile/presentation/page/settings_page.dart';
 
 class _OnboardingNotifier extends ChangeNotifier {
   final DeviceIdService _svc;
@@ -71,6 +73,14 @@ class AppRouter {
           builder: (ctx, state) => BlocProvider(
             create: (ctx) => ProfileBloc(ctx.read<ProfileRepository>()),
             child: const ProfilePage(),
+          ),
+        ),
+        GoRoute(
+          path: RouteConstants.settings,
+          name: 'settings',
+          builder: (ctx, state) => BlocProvider(
+            create: (ctx) => SettingsBloc(ctx.read<DeviceIdService>()),
+            child: const SettingsPage(),
           ),
         ),
       ],
