@@ -5,6 +5,8 @@ import '../constants/route_constants.dart';
 import '../security/device_id_service.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
+import '../../features/home/presentation/bloc/home_bloc.dart';
+import '../../features/home/presentation/bloc/home_event.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/profile/presentation/bloc/profile_bloc.dart';
 import '../../features/profile/presentation/page/profile_page.dart';
@@ -70,7 +72,11 @@ class AppRouter {
         ),
         GoRoute(
           path: RouteConstants.home,
-          builder: (ctx, state) => const HomePage(),
+          builder: (ctx, state) => BlocProvider(
+            create: (ctx) =>
+                HomeBloc(ctx.read<TripRepository>())..add(const LoadTrips()),
+            child: const HomePage(),
+          ),
         ),
         GoRoute(
           path: RouteConstants.profile,

@@ -8,6 +8,12 @@ class TripRepositoryImpl implements TripRepository {
   TripRepositoryImpl(this._remoteDatasource);
 
   @override
+  Future<List<TripModel>> listTrips() async {
+    final dtos = await _remoteDatasource.listTrips();
+    return dtos.map((dto) => dto.toDomain()).toList();
+  }
+
+  @override
   Future<TripModel> getTrip(String tripId) async {
     final dto = await _remoteDatasource.getTrip(tripId);
     return dto.toDomain();
@@ -24,6 +30,28 @@ class TripRepositoryImpl implements TripRepository {
       description: description,
       currency: currency,
     );
+    return dto.toDomain();
+  }
+
+  @override
+  Future<TripModel> updateTrip(
+    String tripId, {
+    required String title,
+    String? description,
+    String? currency,
+  }) async {
+    final dto = await _remoteDatasource.updateTrip(
+      tripId,
+      title: title,
+      description: description,
+      currency: currency,
+    );
+    return dto.toDomain();
+  }
+
+  @override
+  Future<TripModel> archiveTrip(String tripId) async {
+    final dto = await _remoteDatasource.archiveTrip(tripId);
     return dto.toDomain();
   }
 }
