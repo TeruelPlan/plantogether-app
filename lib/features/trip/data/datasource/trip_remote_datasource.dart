@@ -44,7 +44,7 @@ class TripRemoteDatasource {
       '/api/v1/trips/$tripId',
       data: {
         'title': title,
-        if (description != null) 'description': description,
+        'description': description ?? '',
         if (currency != null) 'referenceCurrency': currency,
       },
     );

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/model/trip_model.dart';
 import '../bloc/trip_detail_bloc.dart';
 import '../bloc/trip_detail_event.dart';
+import '../bloc/trip_detail_state.dart';
 
 class TripEditSheet extends StatefulWidget {
   final TripModel trip;
@@ -31,6 +32,7 @@ class _TripEditSheetState extends State<TripEditSheet> {
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _currencyController;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -53,89 +55,111 @@ class _TripEditSheetState extends State<TripEditSheet> {
   void _onSave() {
     if (!_formKey.currentState!.validate()) return;
 
+    setState(() => _saving = true);
+
+    final descText = _descriptionController.text.trim();
+    final currText = _currencyController.text.trim().toUpperCase();
+
     context.read<TripDetailBloc>().add(UpdateTrip(
           tripId: widget.trip.id,
           title: _titleController.text.trim(),
-          description: _descriptionController.text.trim().isEmpty
-              ? null
-              : _descriptionController.text.trim(),
-          currency: _currencyController.text.trim().isEmpty
-              ? null
-              : _currencyController.text.trim(),
+          description: descText,
+          currency: currText.isEmpty ? null : currText,
         ));
-    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      minChildSize: 0.5,
-      maxChildSize: 0.95,
-      expand: false,
-      builder: (context, scrollController) => Padding(
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-        ),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            controller: scrollController,
-            children: [
-              Text(
-                'Edit trip',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  border: OutlineInputBorder(),
+    return BlocListener<TripDetailBloc, TripDetailState>(
+      listener: (context, state) {
+        state.when(
+          initial: () {},
+          loading: () {},
+          loaded: (trip) => Navigator.of(context).pop(),
+          failure: (message) {
+            setState(() => _saving = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message)),
+            );
+          },
+        );
+      },
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              controller: scrollController,
+              children: [
+                Text(
+                  'Edit trip',
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Title is required';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 24),
+                TextFormField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Title',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Title is required';
+                    }
+                    return null;
+                  },
                 ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _currencyController,
-                decoration: const InputDecoration(
-                  labelText: 'Reference currency',
-                  hintText: 'EUR',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: 'Description',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
                 ),
-                textCapitalization: TextCapitalization.characters,
-                validator: (value) {
-                  if (value != null &&
-                      value.isNotEmpty &&
-                      !RegExp(r'^[A-Z]{3}$').hasMatch(value)) {
-                    return 'Must be a 3-letter currency code (e.g. EUR)';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: _onSave,
-                child: const Text('Save'),
-              ),
-            ],
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _currencyController,
+                  decoration: const InputDecoration(
+                    labelText: 'Reference currency',
+                    hintText: 'EUR',
+                    border: OutlineInputBorder(),
+                  ),
+                  textCapitalization: TextCapitalization.characters,
+                  validator: (value) {
+                    if (value != null && value.isNotEmpty) {
+                      final upper = value.toUpperCase();
+                      if (!RegExp(r'^[A-Z]{3}$').hasMatch(upper)) {
+                        return 'Must be a 3-letter currency code (e.g. EUR)';
+                      }
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: _saving ? null : _onSave,
+                  child: _saving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Save'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:plantogether_app/features/trip/domain/model/trip_model.dart';
 import 'package:plantogether_app/features/trip/domain/repository/trip_repository.dart';
 import 'package:plantogether_app/features/trip/presentation/bloc/trip_detail_bloc.dart';
 import 'package:plantogether_app/features/trip/presentation/widgets/archive_confirm_dialog.dart';
@@ -50,16 +51,32 @@ void main() {
     expect(find.text('Archive this trip?'), findsNothing);
   });
 
-  testWidgets('confirm dispatches ArchiveTrip and closes', (tester) async {
+  testWidgets('confirm dispatches ArchiveTrip and shows loading',
+      (tester) async {
+    // archiveTrip never completes — simulates in-flight request
+    when(() => mockRepository.archiveTrip('trip-1'))
+        .thenAnswer((_) async => Future<TripModel>.delayed(
+              const Duration(seconds: 10),
+              () => const TripModel(
+                id: 'trip-1',
+                title: 'Trip',
+                status: 'ARCHIVED',
+                referenceCurrency: 'EUR',
+                createdBy: 'device-1',
+                createdAt: '2026-01-01T00:00:00Z',
+                memberCount: 1,
+              ),
+            ));
+
     await tester.pumpWidget(buildWidget());
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Archive'));
-    await tester.pumpAndSettle();
+    await tester.pump();
 
-    expect(find.text('Archive this trip?'), findsNothing);
-    // The BLoC should have received an ArchiveTrip event
-    // (verified by the fact that the dialog closed after dispatching)
+    // Dialog stays open with loading indicator
+    expect(find.text('Archive this trip?'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 }

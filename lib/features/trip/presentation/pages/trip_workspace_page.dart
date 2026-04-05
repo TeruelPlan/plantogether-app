@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/security/device_id_service.dart';
 import '../../domain/model/trip_model.dart';
@@ -24,12 +25,13 @@ class TripWorkspacePage extends StatefulWidget {
 
 class _TripWorkspacePageState extends State<TripWorkspacePage> {
   String? _deviceId;
+  String? _previousStatus;
 
   @override
   void initState() {
     super.initState();
-    context.read<TripDetailBloc>().add(LoadTripDetail(tripId: widget.tripId));
     _loadDeviceId();
+    context.read<TripDetailBloc>().add(LoadTripDetail(tripId: widget.tripId));
   }
 
   Future<void> _loadDeviceId() async {
@@ -48,7 +50,19 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TripDetailBloc, TripDetailState>(
+    return BlocConsumer<TripDetailBloc, TripDetailState>(
+      listener: (context, state) {
+        state.whenOrNull(
+          loaded: (trip) {
+            if (_previousStatus != null &&
+                _previousStatus != 'ARCHIVED' &&
+                trip.status == 'ARCHIVED') {
+              context.go('/home');
+            }
+            _previousStatus = trip.status;
+          },
+        );
+      },
       builder: (context, state) {
         return state.when(
           initial: () => const Scaffold(
