@@ -10,6 +10,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
 
   TripDetailBloc(this._repository) : super(const TripDetailState.initial()) {
     on<LoadTripDetail>(_onLoadTripDetail, transformer: droppable());
+    on<UpdateTrip>(_onUpdateTrip);
+    on<ArchiveTrip>(_onArchiveTrip);
   }
 
   Future<void> _onLoadTripDetail(
@@ -19,6 +21,37 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     emit(const TripDetailState.loading());
     try {
       final trip = await _repository.getTrip(event.tripId);
+      emit(TripDetailState.loaded(trip: trip));
+    } catch (e) {
+      emit(TripDetailState.failure(message: e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateTrip(
+    UpdateTrip event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    emit(const TripDetailState.loading());
+    try {
+      final trip = await _repository.updateTrip(
+        event.tripId,
+        title: event.title,
+        description: event.description,
+        currency: event.currency,
+      );
+      emit(TripDetailState.loaded(trip: trip));
+    } catch (e) {
+      emit(TripDetailState.failure(message: e.toString()));
+    }
+  }
+
+  Future<void> _onArchiveTrip(
+    ArchiveTrip event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    emit(const TripDetailState.loading());
+    try {
+      final trip = await _repository.archiveTrip(event.tripId);
       emit(TripDetailState.loaded(trip: trip));
     } catch (e) {
       emit(TripDetailState.failure(message: e.toString()));

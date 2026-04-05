@@ -9,8 +9,9 @@ import 'trip_summary_card.dart';
 
 class OverviewTab extends StatelessWidget {
   final TripModel trip;
+  final bool isArchived;
 
-  const OverviewTab({super.key, required this.trip});
+  const OverviewTab({super.key, required this.trip, this.isArchived = false});
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +22,30 @@ class OverviewTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Archived banner
+          if (isArchived)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.archive, color: theme.colorScheme.onSurfaceVariant),
+                  const SizedBox(width: 8),
+                  Text(
+                    'This trip is archived',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           // Progress indicator
           TripProgressIndicator(
             datesConfirmed: trip.startDate != null && trip.endDate != null,
@@ -52,8 +77,8 @@ class OverviewTab extends StatelessWidget {
           _buildSummaryGrid(context),
           const SizedBox(height: 16),
 
-          // Invite prompt when alone
-          if (trip.memberCount <= 1)
+          // Invite prompt when alone (hide for archived trips)
+          if (trip.memberCount <= 1 && !isArchived)
             Card(
               child: ListTile(
                 leading: const Icon(Icons.person_add),
