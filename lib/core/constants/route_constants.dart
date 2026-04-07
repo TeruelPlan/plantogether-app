@@ -8,4 +8,5 @@ class RouteConstants {
   static const tripWorkspace = '/trips/:id';
   static const invite = '/trips/:id/invite';
   static const tripPreview = '/trips/:id/join';
+  static const memberList = '/trips/:id/members';
 }

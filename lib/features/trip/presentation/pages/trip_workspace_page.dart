@@ -152,6 +152,14 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                                 extra: trip.title,
                               )
                           : null,
+                      onMembersTap: () => context
+                          .push(
+                            '/trips/${widget.tripId}/members',
+                            extra: _deviceId,
+                          )
+                          .then((_) => context.read<TripDetailBloc>().add(
+                                LoadTripDetail(tripId: widget.tripId),
+                              )),
                     ),
                     const Center(child: Text('Dates')),
                     const Center(child: Text('Destinations')),
