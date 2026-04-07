@@ -103,6 +103,15 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                   actions: [
                     if (isOrganizer && !isArchived)
                       IconButton(
+                        icon: const Icon(Icons.person_add),
+                        tooltip: 'Invite members',
+                        onPressed: () => context.push(
+                          '/trips/${widget.tripId}/invite',
+                          extra: trip.title,
+                        ),
+                      ),
+                    if (isOrganizer && !isArchived)
+                      IconButton(
                         icon: const Icon(Icons.edit),
                         tooltip: 'Edit trip',
                         onPressed: () => TripEditSheet.show(context, trip),
@@ -134,7 +143,16 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                 ),
                 body: TabBarView(
                   children: [
-                    OverviewTab(trip: trip, isArchived: isArchived),
+                    OverviewTab(
+                      trip: trip,
+                      isArchived: isArchived,
+                      onInviteTap: isOrganizer
+                          ? () => context.push(
+                                '/trips/${widget.tripId}/invite',
+                                extra: trip.title,
+                              )
+                          : null,
+                    ),
                     const Center(child: Text('Dates')),
                     const Center(child: Text('Destinations')),
                     const Center(child: Text('Expenses')),

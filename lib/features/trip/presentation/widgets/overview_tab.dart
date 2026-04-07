@@ -10,8 +10,9 @@ import 'trip_summary_card.dart';
 class OverviewTab extends StatelessWidget {
   final TripModel trip;
   final bool isArchived;
+  final VoidCallback? onInviteTap;
 
-  const OverviewTab({super.key, required this.trip, this.isArchived = false});
+  const OverviewTab({super.key, required this.trip, this.isArchived = false, this.onInviteTap});
 
   @override
   Widget build(BuildContext context) {
@@ -86,9 +87,7 @@ class OverviewTab extends StatelessWidget {
                 subtitle:
                     const Text('Share this trip with friends to plan together'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  // Navigate to invite page
-                },
+                onTap: onInviteTap,
               ),
             ),
         ],

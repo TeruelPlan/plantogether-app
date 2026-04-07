@@ -15,8 +15,14 @@ import '../../features/profile/presentation/bloc/settings_bloc.dart';
 import '../../features/profile/presentation/page/settings_page.dart';
 import '../../features/trip/domain/repository/trip_repository.dart';
 import '../../features/trip/presentation/bloc/create_trip_bloc.dart';
+import '../../features/trip/presentation/bloc/invite_bloc.dart';
+import '../../features/trip/presentation/bloc/invite_event.dart';
+import '../../features/trip/presentation/bloc/join_trip_bloc.dart';
+import '../../features/trip/presentation/bloc/join_trip_event.dart';
 import '../../features/trip/presentation/bloc/trip_detail_bloc.dart';
 import '../../features/trip/presentation/pages/create_trip_page.dart';
+import '../../features/trip/presentation/pages/invite_page.dart';
+import '../../features/trip/presentation/pages/trip_preview_page.dart';
 import '../../features/trip/presentation/pages/trip_workspace_page.dart';
 
 class _OnboardingNotifier extends ChangeNotifier {
@@ -110,6 +116,40 @@ class AppRouter {
             return BlocProvider(
               create: (ctx) => TripDetailBloc(ctx.read<TripRepository>()),
               child: TripWorkspacePage(tripId: tripId),
+            );
+          },
+        ),
+        GoRoute(
+          path: RouteConstants.invite,
+          name: 'invite',
+          builder: (ctx, state) {
+            final tripId = state.pathParameters['id']!;
+            final tripName = (state.extra as String?) ?? '';
+            return BlocProvider(
+              create: (ctx) => InviteBloc(ctx.read<TripRepository>())
+                ..add(LoadInvitation(tripId: tripId)),
+              child: InvitePage(tripId: tripId, tripName: tripName),
+            );
+          },
+        ),
+        GoRoute(
+          path: RouteConstants.tripPreview,
+          name: 'tripPreview',
+          builder: (ctx, state) {
+            final tripId = state.pathParameters['id']!;
+            final token = state.uri.queryParameters['token'] ?? '';
+            if (token.isEmpty) {
+              return Scaffold(
+                appBar: AppBar(title: const Text('Invalid Invitation')),
+                body: const Center(
+                  child: Text('This invitation link is invalid or has expired.'),
+                ),
+              );
+            }
+            return BlocProvider(
+              create: (ctx) => JoinTripBloc(ctx.read<TripRepository>())
+                ..add(LoadPreview(tripId: tripId, token: token)),
+              child: TripPreviewPage(tripId: tripId, token: token),
             );
           },
         ),

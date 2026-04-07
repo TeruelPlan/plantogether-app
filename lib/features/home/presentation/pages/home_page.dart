@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,12 +12,94 @@ import '../bloc/home_state.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  void _showJoinDialog(BuildContext context) {
+    final controller = TextEditingController();
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Join a trip'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Paste the invitation link you received:'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: 'https://...',
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.paste),
+                  tooltip: 'Paste from clipboard',
+                  onPressed: () async {
+                    final data = await Clipboard.getData(Clipboard.kTextPlain);
+                    if (data?.text != null) {
+                      controller.text = data!.text!;
+                      controller.selection = TextSelection.fromPosition(
+                        TextPosition(offset: controller.text.length),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final parsed = _parseInviteLink(controller.text.trim());
+              Navigator.of(dialogContext).pop();
+              if (parsed == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Invalid invitation link')),
+                );
+                return;
+              }
+              context.push('/trips/${parsed.$1}/join?token=${parsed.$2}');
+            },
+            child: const Text('Join'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Parses an invite URL like `http://host/trips/{tripId}/join?token={token}`
+  /// Returns (tripId, token) or null if the link is invalid.
+  (String, String)? _parseInviteLink(String raw) {
+    try {
+      final uri = Uri.parse(raw);
+      final segments = uri.pathSegments;
+      // expects [..., 'trips', tripId, 'join']
+      final joinIdx = segments.indexOf('join');
+      if (joinIdx < 1) return null;
+      final tripId = segments[joinIdx - 1];
+      final token = uri.queryParameters['token'] ?? '';
+      if (tripId.isEmpty || token.isEmpty) return null;
+      return (tripId, token);
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('PlanTogether'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.link),
+            tooltip: 'Join with link',
+            onPressed: () => _showJoinDialog(context),
+          ),
           IconButton(
             icon: const Icon(Icons.person),
             tooltip: 'Profile',
