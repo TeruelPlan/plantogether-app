@@ -1,4 +1,5 @@
 import '../model/trip_invitation_model.dart';
+import '../model/trip_member_model.dart';
 import '../model/trip_model.dart';
 import '../model/trip_preview_model.dart';
 
@@ -27,4 +28,8 @@ abstract class TripRepository {
   Future<TripPreviewModel> getTripPreview(String tripId, String token);
 
   Future<TripModel> joinTrip(String tripId, String token);
+
+  Future<List<TripMemberModel>> getMembers(String tripId);
+
+  Future<void> removeMember(String tripId, String deviceId);
 }

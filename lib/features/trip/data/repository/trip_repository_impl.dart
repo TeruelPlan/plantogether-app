@@ -1,4 +1,5 @@
 import '../../domain/model/trip_invitation_model.dart';
+import '../../domain/model/trip_member_model.dart';
 import '../../domain/model/trip_model.dart';
 import '../../domain/model/trip_preview_model.dart';
 import '../../domain/repository/trip_repository.dart';
@@ -73,5 +74,16 @@ class TripRepositoryImpl implements TripRepository {
   Future<TripModel> joinTrip(String tripId, String token) async {
     final dto = await _remoteDatasource.joinTrip(tripId, token);
     return dto.toDomain();
+  }
+
+  @override
+  Future<List<TripMemberModel>> getMembers(String tripId) async {
+    final dtos = await _remoteDatasource.getMembers(tripId);
+    return dtos.map((dto) => dto.toDomain()).toList();
+  }
+
+  @override
+  Future<void> removeMember(String tripId, String deviceId) async {
+    await _remoteDatasource.removeMember(tripId, deviceId);
   }
 }

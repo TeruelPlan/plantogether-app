@@ -19,9 +19,11 @@ import '../../features/trip/presentation/bloc/invite_bloc.dart';
 import '../../features/trip/presentation/bloc/invite_event.dart';
 import '../../features/trip/presentation/bloc/join_trip_bloc.dart';
 import '../../features/trip/presentation/bloc/join_trip_event.dart';
+import '../../features/trip/presentation/bloc/member_list_bloc.dart';
 import '../../features/trip/presentation/bloc/trip_detail_bloc.dart';
 import '../../features/trip/presentation/pages/create_trip_page.dart';
 import '../../features/trip/presentation/pages/invite_page.dart';
+import '../../features/trip/presentation/pages/member_list_page.dart';
 import '../../features/trip/presentation/pages/trip_preview_page.dart';
 import '../../features/trip/presentation/pages/trip_workspace_page.dart';
 
@@ -129,6 +131,21 @@ class AppRouter {
               create: (ctx) => InviteBloc(ctx.read<TripRepository>())
                 ..add(LoadInvitation(tripId: tripId)),
               child: InvitePage(tripId: tripId, tripName: tripName),
+            );
+          },
+        ),
+        GoRoute(
+          path: RouteConstants.memberList,
+          name: 'memberList',
+          builder: (ctx, state) {
+            final tripId = state.pathParameters['id']!;
+            final currentDeviceId = state.extra is String ? state.extra as String : '';
+            return BlocProvider(
+              create: (ctx) => MemberListBloc(ctx.read<TripRepository>()),
+              child: MemberListPage(
+                tripId: tripId,
+                currentDeviceId: currentDeviceId,
+              ),
             );
           },
         ),

@@ -1,6 +1,7 @@
 import '../../../../core/network/dio_client.dart';
 import '../dto/trip_dto.dart';
 import '../dto/trip_invitation_dto.dart';
+import '../dto/trip_member_dto.dart';
 import '../dto/trip_preview_dto.dart';
 
 class TripRemoteDatasource {
@@ -81,5 +82,16 @@ class TripRemoteDatasource {
       data: {'token': token},
     );
     return TripDto.fromJson(response.data);
+  }
+
+  Future<List<TripMemberDto>> getMembers(String tripId) async {
+    final response = await _dioClient.dio.get('/api/v1/trips/$tripId/members');
+    return (response.data as List)
+        .map((json) => TripMemberDto.fromJson(json))
+        .toList();
+  }
+
+  Future<void> removeMember(String tripId, String deviceId) async {
+    await _dioClient.dio.delete('/api/v1/trips/$tripId/members/$deviceId');
   }
 }

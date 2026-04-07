@@ -11,8 +11,15 @@ class OverviewTab extends StatelessWidget {
   final TripModel trip;
   final bool isArchived;
   final VoidCallback? onInviteTap;
+  final VoidCallback? onMembersTap;
 
-  const OverviewTab({super.key, required this.trip, this.isArchived = false, this.onInviteTap});
+  const OverviewTab({
+    super.key,
+    required this.trip,
+    this.isArchived = false,
+    this.onInviteTap,
+    this.onMembersTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +76,7 @@ class OverviewTab extends StatelessWidget {
                 MemberAvatarStack(
                   members: trip.members.map((m) => MemberInfo(deviceId: m.deviceId, displayName: m.displayName)).toList(),
                   size: MemberAvatarSize.md,
+                  onTap: onMembersTap,
                 ),
             ],
           ),
