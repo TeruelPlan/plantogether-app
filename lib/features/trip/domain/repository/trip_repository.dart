@@ -31,5 +31,5 @@ abstract class TripRepository {
 
   Future<List<TripMemberModel>> getMembers(String tripId);
 
-  Future<void> removeMember(String tripId, String deviceId);
+  Future<void> removeMember(String tripId, String memberId);
 }

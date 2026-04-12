@@ -83,7 +83,7 @@ class TripRepositoryImpl implements TripRepository {
   }
 
   @override
-  Future<void> removeMember(String tripId, String deviceId) async {
-    await _remoteDatasource.removeMember(tripId, deviceId);
+  Future<void> removeMember(String tripId, String memberId) async {
+    await _remoteDatasource.removeMember(tripId, memberId);
   }
 }

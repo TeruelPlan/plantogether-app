@@ -25,7 +25,7 @@ class MemberAvatarStack extends StatelessWidget {
     this.onTap,
   });
 
-  static Color avatarColor(String deviceId) {
+  static Color avatarColor(String memberId) {
     const colors = [
       Colors.blue,
       Colors.green,
@@ -36,7 +36,7 @@ class MemberAvatarStack extends StatelessWidget {
       Colors.indigo,
       Colors.amber,
     ];
-    return colors[(deviceId.hashCode % colors.length + colors.length) % colors.length];
+    return colors[(memberId.hashCode % colors.length + colors.length) % colors.length];
   }
 
   @override
@@ -114,7 +114,7 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = MemberAvatarStack.avatarColor(member.deviceId);
+    final color = MemberAvatarStack.avatarColor(member.memberId);
     final initial =
         member.displayName.isNotEmpty ? member.displayName[0].toUpperCase() : '?';
 

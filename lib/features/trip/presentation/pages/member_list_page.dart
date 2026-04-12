@@ -10,12 +10,10 @@ import '../widgets/remove_member_dialog.dart';
 
 class MemberListPage extends StatefulWidget {
   final String tripId;
-  final String currentDeviceId;
 
   const MemberListPage({
     super.key,
     required this.tripId,
-    required this.currentDeviceId,
   });
 
   @override
@@ -30,9 +28,7 @@ class _MemberListPageState extends State<MemberListPage> {
   }
 
   bool _isOrganizer(List<TripMemberModel> members) {
-    return members.any(
-      (m) => m.deviceId == widget.currentDeviceId && m.role == 'ORGANIZER',
-    );
+    return members.any((m) => m.isMe && m.role == 'ORGANIZER');
   }
 
   @override
@@ -84,14 +80,12 @@ class _MemberListPageState extends State<MemberListPage> {
                 itemCount: members.length,
                 itemBuilder: (context, index) {
                   final member = members[index];
-                  final isCurrentUser =
-                      member.deviceId == widget.currentDeviceId;
                   final isMemberOrganizer = member.role == 'ORGANIZER';
 
                   return ListTile(
                     leading: CircleAvatar(
                       backgroundColor:
-                          MemberAvatarStack.avatarColor(member.deviceId),
+                          MemberAvatarStack.avatarColor(member.memberId),
                       child: Text(
                         member.displayName.trim().isNotEmpty
                             ? member.displayName.trim()[0].toUpperCase()
@@ -116,14 +110,14 @@ class _MemberListPageState extends State<MemberListPage> {
                         ),
                       ],
                     ),
-                    trailing: (isOrganizer && !isCurrentUser && !isMemberOrganizer)
+                    trailing: (isOrganizer && !member.isMe && !isMemberOrganizer)
                         ? IconButton(
                             icon: const Icon(Icons.person_remove_outlined),
                             tooltip: 'Remove member',
                             onPressed: () => RemoveMemberDialog.show(
                               context,
                               tripId: widget.tripId,
-                              deviceId: member.deviceId,
+                              memberId: member.memberId,
                               displayName: member.displayName,
                             ),
                           )

@@ -12,17 +12,19 @@ class MockTripRepository extends Mock implements TripRepository {}
 const _tripId = 'trip-1';
 
 const _organizer = TripMemberModel(
-  deviceId: 'device-organizer',
+  memberId: 'member-organizer',
   displayName: 'Alice',
   role: 'ORGANIZER',
   joinedAt: '2026-01-01T00:00:00Z',
+  isMe: true,
 );
 
 const _participant = TripMemberModel(
-  deviceId: 'device-participant',
+  memberId: 'member-participant',
   displayName: 'Bob',
   role: 'PARTICIPANT',
   joinedAt: '2026-01-02T00:00:00Z',
+  isMe: false,
 );
 
 void main() {
@@ -70,7 +72,7 @@ void main() {
     blocTest<MemberListBloc, MemberListState>(
       'emits loaded without removed member (optimistic update)',
       build: () {
-        when(() => mockRepository.removeMember(_tripId, 'device-participant'))
+        when(() => mockRepository.removeMember(_tripId, 'member-participant'))
             .thenAnswer((_) async {});
         return MemberListBloc(mockRepository);
       },
@@ -79,7 +81,7 @@ void main() {
       ),
       act: (bloc) => bloc.add(const RemoveMember(
         tripId: _tripId,
-        deviceId: 'device-participant',
+        memberId: 'member-participant',
       )),
       expect: () => [
         const MemberListState.loaded(members: [_organizer]),
@@ -89,7 +91,7 @@ void main() {
     blocTest<MemberListBloc, MemberListState>(
       'reverts to previous list and emits failure when removeMember throws',
       build: () {
-        when(() => mockRepository.removeMember(_tripId, 'device-participant'))
+        when(() => mockRepository.removeMember(_tripId, 'member-participant'))
             .thenThrow(Exception('Server error'));
         return MemberListBloc(mockRepository);
       },
@@ -98,7 +100,7 @@ void main() {
       ),
       act: (bloc) => bloc.add(const RemoveMember(
         tripId: _tripId,
-        deviceId: 'device-participant',
+        memberId: 'member-participant',
       )),
       expect: () => [
         const MemberListState.loaded(members: [_organizer]),

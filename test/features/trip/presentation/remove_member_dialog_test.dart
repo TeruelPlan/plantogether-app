@@ -16,16 +16,18 @@ void main() {
 
   const members = [
     TripMemberModel(
-      deviceId: 'device-organizer',
+      memberId: 'member-organizer',
       displayName: 'Alice',
       role: 'ORGANIZER',
       joinedAt: '2026-01-01T00:00:00Z',
+      isMe: true,
     ),
     TripMemberModel(
-      deviceId: 'device-participant',
+      memberId: 'member-participant',
       displayName: 'Bob',
       role: 'PARTICIPANT',
       joinedAt: '2026-01-02T00:00:00Z',
+      isMe: false,
     ),
   ];
 
@@ -51,7 +53,7 @@ void main() {
               onPressed: () => RemoveMemberDialog.show(
                 context,
                 tripId: 'trip-1',
-                deviceId: 'device-participant',
+                memberId: 'member-participant',
                 displayName: 'Bob',
               ),
               child: const Text('Open'),
@@ -83,7 +85,7 @@ void main() {
     });
 
     testWidgets('confirm dispatches RemoveMember and closes dialog', (tester) async {
-      when(() => mockRepository.removeMember('trip-1', 'device-participant'))
+      when(() => mockRepository.removeMember('trip-1', 'member-participant'))
           .thenAnswer((_) async {});
 
       await tester.pumpWidget(buildTestWidget());

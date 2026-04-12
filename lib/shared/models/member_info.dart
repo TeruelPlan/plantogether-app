@@ -1,6 +1,6 @@
 class MemberInfo {
-  final String deviceId;
+  final String memberId;
   final String displayName;
 
-  const MemberInfo({required this.deviceId, required this.displayName});
+  const MemberInfo({required this.memberId, required this.displayName});
 }

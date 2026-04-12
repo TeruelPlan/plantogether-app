@@ -7,7 +7,7 @@ void main() {
   final sixMembers = List.generate(
     6,
     (i) => MemberInfo(
-      deviceId: 'device-$i',
+      memberId: 'member-$i',
       displayName: 'Member $i',
     ),
   );

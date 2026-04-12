@@ -35,13 +35,13 @@ class MemberListBloc extends Bloc<MemberListEvent, MemberListState> {
     if (previousMembers == null) return;
 
     final optimisticMembers = previousMembers
-        .where((m) => m.deviceId != event.deviceId)
+        .where((m) => m.memberId != event.memberId)
         .toList();
 
     emit(MemberListState.loaded(members: optimisticMembers));
 
     try {
-      await _repository.removeMember(event.tripId, event.deviceId);
+      await _repository.removeMember(event.tripId, event.memberId);
     } catch (e) {
       emit(MemberListState.loaded(members: previousMembers));
       emit(MemberListState.failure(message: e.toString()));
