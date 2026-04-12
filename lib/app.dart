@@ -5,6 +5,8 @@ import 'core/network/stomp_client_manager.dart';
 import 'core/router/app_router.dart';
 import 'core/security/device_id_service.dart';
 import 'core/theme/app_theme.dart';
+import 'features/home/presentation/bloc/home_bloc.dart';
+import 'features/home/presentation/bloc/home_event.dart';
 import 'features/profile/data/datasource/profile_remote_datasource.dart';
 import 'features/profile/data/repository/profile_repository_impl.dart';
 import 'features/profile/domain/repository/profile_repository.dart';
@@ -37,7 +39,11 @@ class PlanTogetherApp extends StatelessWidget {
             create: (ctx) => TripRepositoryImpl(
                 ctx.read<TripRemoteDatasource>())),
       ],
-      child: const _AppContent(),
+      child: BlocProvider(
+        create: (ctx) =>
+            HomeBloc(ctx.read<TripRepository>())..add(const LoadTrips()),
+        child: const _AppContent(),
+      ),
     );
   }
 }

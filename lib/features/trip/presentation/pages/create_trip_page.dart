@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../features/home/presentation/bloc/home_bloc.dart';
+import '../../../../features/home/presentation/bloc/home_event.dart';
 import '../bloc/create_trip_bloc.dart';
 import '../bloc/create_trip_event.dart';
 import '../bloc/create_trip_state.dart';
@@ -33,7 +35,10 @@ class _CreateTripPageState extends State<CreateTripPage> {
     return BlocListener<CreateTripBloc, CreateTripState>(
       listener: (context, state) {
         state.whenOrNull(
-          success: (trip) => context.pushReplacement('/trips/${trip.id}', extra: trip),
+          success: (trip) {
+            context.read<HomeBloc>().add(const LoadTrips());
+            context.pushReplacement('/trips/${trip.id}', extra: trip);
+          },
           failure: (message) => ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(message)),
           ),
