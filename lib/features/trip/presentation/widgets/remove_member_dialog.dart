@@ -6,20 +6,20 @@ import '../bloc/member_list_event.dart';
 
 class RemoveMemberDialog extends StatelessWidget {
   final String tripId;
-  final String deviceId;
+  final String memberId;
   final String displayName;
 
   const RemoveMemberDialog({
     super.key,
     required this.tripId,
-    required this.deviceId,
+    required this.memberId,
     required this.displayName,
   });
 
   static Future<void> show(
     BuildContext context, {
     required String tripId,
-    required String deviceId,
+    required String memberId,
     required String displayName,
   }) {
     return showDialog(
@@ -28,7 +28,7 @@ class RemoveMemberDialog extends StatelessWidget {
         value: context.read<MemberListBloc>(),
         child: RemoveMemberDialog(
           tripId: tripId,
-          deviceId: deviceId,
+          memberId: memberId,
           displayName: displayName,
         ),
       ),
@@ -55,7 +55,7 @@ class RemoveMemberDialog extends StatelessWidget {
           ),
           onPressed: () {
             context.read<MemberListBloc>().add(
-                  RemoveMember(tripId: tripId, deviceId: deviceId),
+                  RemoveMember(tripId: tripId, memberId: memberId),
                 );
             Navigator.of(context).pop();
           },

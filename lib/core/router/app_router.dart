@@ -133,13 +133,9 @@ class AppRouter {
           name: 'memberList',
           builder: (ctx, state) {
             final tripId = state.pathParameters['id']!;
-            final currentDeviceId = state.extra is String ? state.extra as String : '';
             return BlocProvider(
               create: (ctx) => MemberListBloc(ctx.read<TripRepository>()),
-              child: MemberListPage(
-                tripId: tripId,
-                currentDeviceId: currentDeviceId,
-              ),
+              child: MemberListPage(tripId: tripId),
             );
           },
         ),

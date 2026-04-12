@@ -6,16 +6,18 @@ part 'trip_member_dto.g.dart';
 
 @JsonSerializable()
 class TripMemberDto {
-  final String deviceId;
+  final String id;
   final String displayName;
   final String role;
   final String joinedAt;
+  final bool isMe;
 
   const TripMemberDto({
-    required this.deviceId,
+    required this.id,
     required this.displayName,
     required this.role,
     required this.joinedAt,
+    required this.isMe,
   });
 
   factory TripMemberDto.fromJson(Map<String, dynamic> json) =>
@@ -24,9 +26,10 @@ class TripMemberDto {
   Map<String, dynamic> toJson() => _$TripMemberDtoToJson(this);
 
   TripMemberModel toDomain() => TripMemberModel(
-        deviceId: deviceId,
+        memberId: id,
         displayName: displayName,
         role: role,
         joinedAt: joinedAt,
+        isMe: isMe,
       );
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/security/device_id_service.dart';
 import '../../domain/model/trip_model.dart';
 import '../bloc/trip_detail_bloc.dart';
 import '../bloc/trip_detail_event.dart';
@@ -24,26 +23,16 @@ class TripWorkspacePage extends StatefulWidget {
 }
 
 class _TripWorkspacePageState extends State<TripWorkspacePage> {
-  String? _deviceId;
   String? _previousStatus;
 
   @override
   void initState() {
     super.initState();
-    _loadDeviceId();
     context.read<TripDetailBloc>().add(LoadTripDetail(tripId: widget.tripId));
   }
 
-  Future<void> _loadDeviceId() async {
-    final id = await context.read<DeviceIdService>().getDeviceId();
-    if (mounted) setState(() => _deviceId = id);
-  }
-
   bool _isOrganizer(TripModel trip) {
-    if (_deviceId == null) return false;
-    return trip.members.any(
-      (m) => m.deviceId == _deviceId && m.role == 'ORGANIZER',
-    );
+    return trip.members.any((m) => m.isMe && m.role == 'ORGANIZER');
   }
 
   bool _isArchived(TripModel trip) => trip.status == 'ARCHIVED';
@@ -159,10 +148,7 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                               )
                           : null,
                       onMembersTap: () => context
-                          .push(
-                            '/trips/${widget.tripId}/members',
-                            extra: _deviceId,
-                          )
+                          .push('/trips/${widget.tripId}/members')
                           .then((_) => context.read<TripDetailBloc>().add(
                                 LoadTripDetail(tripId: widget.tripId),
                               )),

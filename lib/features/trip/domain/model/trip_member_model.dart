@@ -5,9 +5,10 @@ part 'trip_member_model.freezed.dart';
 @freezed
 abstract class TripMemberModel with _$TripMemberModel {
   const factory TripMemberModel({
-    required String deviceId,
+    required String memberId,
     required String displayName,
     required String role,
     required String joinedAt,
+    required bool isMe,
   }) = _TripMemberModel;
 }

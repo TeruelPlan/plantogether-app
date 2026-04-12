@@ -23,30 +23,26 @@ class FakeMemberListBloc extends MemberListBloc {
 }
 
 const _organizer = TripMemberModel(
-  deviceId: 'device-organizer',
+  memberId: 'member-organizer',
   displayName: 'Alice',
   role: 'ORGANIZER',
   joinedAt: '2026-01-01T00:00:00Z',
+  isMe: true,
 );
 
 const _participant = TripMemberModel(
-  deviceId: 'device-participant',
+  memberId: 'member-participant',
   displayName: 'Bob',
   role: 'PARTICIPANT',
   joinedAt: '2026-01-02T00:00:00Z',
+  isMe: false,
 );
 
-Widget buildTestWidget({
-  required MemberListBloc bloc,
-  required String currentDeviceId,
-}) {
+Widget buildTestWidget({required MemberListBloc bloc}) {
   return MaterialApp(
     home: BlocProvider<MemberListBloc>.value(
       value: bloc,
-      child: MemberListPage(
-        tripId: 'trip-1',
-        currentDeviceId: currentDeviceId,
-      ),
+      child: const MemberListPage(tripId: 'trip-1'),
     ),
   );
 }
@@ -63,10 +59,7 @@ void main() {
   group('MemberListPage', () {
     testWidgets('renders member list with avatars and role badges', (tester) async {
       final bloc = MemberListBloc(mockRepository);
-      await tester.pumpWidget(buildTestWidget(
-        bloc: bloc,
-        currentDeviceId: 'device-organizer',
-      ));
+      await tester.pumpWidget(buildTestWidget(bloc: bloc));
       await tester.pump();
       await tester.pump();
 
@@ -78,10 +71,7 @@ void main() {
 
     testWidgets('remove button only visible for organizer on participant rows', (tester) async {
       final bloc = MemberListBloc(mockRepository);
-      await tester.pumpWidget(buildTestWidget(
-        bloc: bloc,
-        currentDeviceId: 'device-organizer',
-      ));
+      await tester.pumpWidget(buildTestWidget(bloc: bloc));
       await tester.pump();
       await tester.pump();
 
@@ -89,11 +79,25 @@ void main() {
     });
 
     testWidgets('remove button not shown when current user is participant', (tester) async {
+      const participantAsMe = TripMemberModel(
+        memberId: 'member-participant',
+        displayName: 'Bob',
+        role: 'PARTICIPANT',
+        joinedAt: '2026-01-02T00:00:00Z',
+        isMe: true,
+      );
+      const organizerNotMe = TripMemberModel(
+        memberId: 'member-organizer',
+        displayName: 'Alice',
+        role: 'ORGANIZER',
+        joinedAt: '2026-01-01T00:00:00Z',
+        isMe: false,
+      );
+      when(() => mockRepository.getMembers(any()))
+          .thenAnswer((_) async => [organizerNotMe, participantAsMe]);
+
       final bloc = MemberListBloc(mockRepository);
-      await tester.pumpWidget(buildTestWidget(
-        bloc: bloc,
-        currentDeviceId: 'device-participant',
-      ));
+      await tester.pumpWidget(buildTestWidget(bloc: bloc));
       await tester.pump();
       await tester.pump();
 
@@ -102,10 +106,7 @@ void main() {
 
     testWidgets('remove button not shown on organizer row even when caller is organizer', (tester) async {
       final bloc = MemberListBloc(mockRepository);
-      await tester.pumpWidget(buildTestWidget(
-        bloc: bloc,
-        currentDeviceId: 'device-organizer',
-      ));
+      await tester.pumpWidget(buildTestWidget(bloc: bloc));
       await tester.pump();
       await tester.pump();
 

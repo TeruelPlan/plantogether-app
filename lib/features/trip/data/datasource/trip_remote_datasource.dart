@@ -91,7 +91,7 @@ class TripRemoteDatasource {
         .toList();
   }
 
-  Future<void> removeMember(String tripId, String deviceId) async {
-    await _dioClient.dio.delete('/api/v1/trips/$tripId/members/$deviceId');
+  Future<void> removeMember(String tripId, String memberId) async {
+    await _dioClient.dio.delete('/api/v1/trips/$tripId/members/$memberId');
   }
 }

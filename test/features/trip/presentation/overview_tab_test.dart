@@ -16,11 +16,11 @@ void main() {
     memberCount: 3,
     members: [
       TripMemberModel(
-          deviceId: 'device-1', displayName: 'Alice', role: 'OWNER', joinedAt: '2026-01-01'),
+          memberId: 'member-1', displayName: 'Alice', role: 'OWNER', joinedAt: '2026-01-01', isMe: true),
       TripMemberModel(
-          deviceId: 'device-2', displayName: 'Bob', role: 'MEMBER', joinedAt: '2026-01-02'),
+          memberId: 'member-2', displayName: 'Bob', role: 'MEMBER', joinedAt: '2026-01-02', isMe: false),
       TripMemberModel(
-          deviceId: 'device-3', displayName: 'Charlie', role: 'MEMBER', joinedAt: '2026-01-03'),
+          memberId: 'member-3', displayName: 'Charlie', role: 'MEMBER', joinedAt: '2026-01-03', isMe: false),
     ],
   );
 
@@ -33,7 +33,7 @@ void main() {
     memberCount: 1,
     members: [
       TripMemberModel(
-          deviceId: 'device-1', displayName: 'Alice', role: 'OWNER', joinedAt: '2026-01-01'),
+          memberId: 'member-1', displayName: 'Alice', role: 'OWNER', joinedAt: '2026-01-01', isMe: true),
     ],
   );
 

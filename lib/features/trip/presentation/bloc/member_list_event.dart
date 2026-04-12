@@ -18,10 +18,10 @@ class LoadMembers extends MemberListEvent {
 
 class RemoveMember extends MemberListEvent {
   final String tripId;
-  final String deviceId;
+  final String memberId;
 
-  const RemoveMember({required this.tripId, required this.deviceId});
+  const RemoveMember({required this.tripId, required this.memberId});
 
   @override
-  List<Object?> get props => [tripId, deviceId];
+  List<Object?> get props => [tripId, memberId];
 }

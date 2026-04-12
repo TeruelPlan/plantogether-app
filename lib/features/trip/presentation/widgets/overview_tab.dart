@@ -74,7 +74,7 @@ class OverviewTab extends StatelessWidget {
               const SizedBox(width: 8),
               if (trip.members.isNotEmpty)
                 MemberAvatarStack(
-                  members: trip.members.map((m) => MemberInfo(deviceId: m.deviceId, displayName: m.displayName)).toList(),
+                  members: trip.members.map((m) => MemberInfo(memberId: m.memberId, displayName: m.displayName)).toList(),
                   size: MemberAvatarSize.md,
                   onTap: onMembersTap,
                 ),
