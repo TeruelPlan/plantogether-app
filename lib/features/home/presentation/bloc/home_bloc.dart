@@ -9,7 +9,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final TripRepository _repository;
 
   HomeBloc(this._repository) : super(const HomeState.initial()) {
-    on<LoadTrips>(_onLoadTrips, transformer: droppable());
+    on<LoadTrips>(_onLoadTrips, transformer: restartable());
   }
 
   Future<void> _onLoadTrips(
