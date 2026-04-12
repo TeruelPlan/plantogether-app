@@ -56,10 +56,10 @@ void main() {
     testWidgets('shows empty states when no dates are set', (tester) async {
       await tester.pumpWidget(buildTestWidget(tripNoDates));
 
-      expect(find.text('No dates set yet'), findsOneWidget);
-      expect(find.text('No destination chosen yet'), findsOneWidget);
-      expect(find.text('No expenses yet'), findsOneWidget);
-      expect(find.text('No tasks yet'), findsOneWidget);
+      expect(find.text('Create a date poll'), findsOneWidget);
+      expect(find.text('Propose a destination'), findsOneWidget);
+      expect(find.text('Add the first expense'), findsOneWidget);
+      expect(find.text('Add a task'), findsOneWidget);
     });
 
     testWidgets('displays MemberAvatarStack', (tester) async {

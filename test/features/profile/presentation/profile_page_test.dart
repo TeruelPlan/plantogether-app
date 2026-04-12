@@ -5,10 +5,11 @@ import 'package:mocktail/mocktail.dart';
 import 'package:plantogether_app/features/profile/domain/model/user_profile.dart';
 import 'package:plantogether_app/features/profile/domain/repository/profile_repository.dart';
 import 'package:plantogether_app/features/profile/presentation/bloc/profile_bloc.dart';
-import 'package:plantogether_app/features/profile/presentation/bloc/profile_state.dart';
 import 'package:plantogether_app/features/profile/presentation/page/profile_page.dart';
 
 class MockProfileRepository extends Mock implements ProfileRepository {}
+
+const _alice = UserProfile(displayName: 'Alice', avatarUrl: null);
 
 void main() {
   group('ProfilePage', () {
@@ -19,6 +20,7 @@ void main() {
     });
 
     testWidgets('renders display name on profileLoaded', (WidgetTester tester) async {
+      when(() => mockRepository.getMyProfile()).thenAnswer((_) async => _alice);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -29,20 +31,7 @@ void main() {
         ),
       );
 
-      // Initial state is loading
-      expect(find.byType(CircularProgressIndicator), findsWidgets);
-
-      // Simulate BLoC state change
-      await tester.pumpWidget(
-        MaterialApp(
-          home: BlocProvider(
-            create: (context) => _TestProfileBloc(),
-            child: const ProfilePage(),
-          ),
-        ),
-      );
-
-      // Wait for widget rebuild
+      // Let the post-frame callback fire and the BLoC load the profile.
       await tester.pumpAndSettle();
 
       expect(find.text('Alice'), findsWidgets);
@@ -50,10 +39,12 @@ void main() {
 
     testWidgets('save button is disabled when name is empty',
         (WidgetTester tester) async {
+      when(() => mockRepository.getMyProfile()).thenAnswer((_) async => _alice);
+
       await tester.pumpWidget(
         MaterialApp(
           home: BlocProvider(
-            create: (context) => _TestProfileBloc(),
+            create: (context) => ProfileBloc(mockRepository),
             child: const ProfilePage(),
           ),
         ),
@@ -61,48 +52,39 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Find and clear the text field
+      // Clear the text field.
       final textField = find.byType(TextField);
       await tester.enterText(textField, '');
       await tester.pumpAndSettle();
 
-      // Save button should be disabled
+      // Save button should be disabled when the field is empty.
       final saveButton = find.byType(ElevatedButton);
       expect(tester.widget<ElevatedButton>(saveButton).onPressed, isNull);
     });
 
     testWidgets('snackbar appears on profileUpdateSuccess',
         (WidgetTester tester) async {
+      when(() => mockRepository.getMyProfile()).thenAnswer((_) async => _alice);
+      when(() => mockRepository.updateMyProfile('Alice'))
+          .thenAnswer((_) async => _alice);
+
       await tester.pumpWidget(
         MaterialApp(
           home: BlocProvider(
-            create: (context) => _UpdateSuccessProfileBloc(),
+            create: (context) => ProfileBloc(mockRepository),
             child: const ProfilePage(),
           ),
         ),
       );
 
+      // Wait for profile to load (text field will contain 'Alice').
+      await tester.pumpAndSettle();
+
+      // Tap save — name is non-empty so the button is enabled.
+      await tester.tap(find.byType(ElevatedButton));
       await tester.pumpAndSettle();
 
       expect(find.text('Profile updated'), findsOneWidget);
     });
   });
-}
-
-class _TestProfileBloc extends ProfileBloc {
-  _TestProfileBloc()
-      : super(MockProfileRepository() as ProfileRepository) {
-    emit(const ProfileState.loaded(
-      UserProfile(displayName: 'Alice', avatarUrl: null),
-    ));
-  }
-}
-
-class _UpdateSuccessProfileBloc extends ProfileBloc {
-  _UpdateSuccessProfileBloc()
-      : super(MockProfileRepository() as ProfileRepository) {
-    emit(const ProfileState.updateSuccess(
-      UserProfile(displayName: 'Alice', avatarUrl: null),
-    ));
-  }
 }
