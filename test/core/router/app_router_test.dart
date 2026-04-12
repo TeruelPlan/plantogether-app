@@ -6,20 +6,29 @@ import 'package:mocktail/mocktail.dart';
 import 'package:plantogether_app/core/constants/route_constants.dart';
 import 'package:plantogether_app/core/router/app_router.dart';
 import 'package:plantogether_app/core/security/device_id_service.dart';
+import 'package:plantogether_app/features/trip/domain/repository/trip_repository.dart';
 
 class MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
 
+class MockTripRepository extends Mock implements TripRepository {}
+
 void main() {
   late MockFlutterSecureStorage mockStorage;
+  late MockTripRepository mockTripRepository;
   late DeviceIdService deviceIdService;
 
   setUp(() {
     mockStorage = MockFlutterSecureStorage();
+    mockTripRepository = MockTripRepository();
     deviceIdService = DeviceIdService(storage: mockStorage);
+    when(() => mockTripRepository.listTrips()).thenAnswer((_) async => []);
   });
 
-  Widget buildWithRouter(AppRouter appRouter) => RepositoryProvider.value(
-        value: deviceIdService,
+  Widget buildWithRouter(AppRouter appRouter) => MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider.value(value: deviceIdService),
+          RepositoryProvider<TripRepository>.value(value: mockTripRepository),
+        ],
         child: MaterialApp.router(routerConfig: appRouter.router),
       );
 
@@ -53,7 +62,7 @@ void main() {
       await tester.pumpWidget(buildWithRouter(appRouter));
       await tester.pumpAndSettle();
 
-      expect(find.text('Home'), findsOneWidget);
+      expect(find.text('PlanTogether'), findsOneWidget);
     });
 
     testWidgets('redirects to /home after completing onboarding',
@@ -78,7 +87,7 @@ void main() {
       await tester.tap(find.text('Get started'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Home'), findsOneWidget);
+      expect(find.text('PlanTogether'), findsOneWidget);
     });
   });
 

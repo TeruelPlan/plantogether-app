@@ -43,8 +43,8 @@ class MemberListBloc extends Bloc<MemberListEvent, MemberListState> {
     try {
       await _repository.removeMember(event.tripId, event.deviceId);
     } catch (e) {
-      emit(MemberListState.failure(message: e.toString()));
       emit(MemberListState.loaded(members: previousMembers));
+      emit(MemberListState.failure(message: e.toString()));
     }
   }
 }

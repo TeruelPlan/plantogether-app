@@ -19,7 +19,9 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     _displayNameController = TextEditingController();
-    context.read<ProfileBloc>().add(const LoadProfile());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<ProfileBloc>().add(const LoadProfile());
+    });
   }
 
   @override

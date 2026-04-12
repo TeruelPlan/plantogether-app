@@ -103,7 +103,7 @@ class HomePage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.person),
             tooltip: 'Profile',
-            onPressed: () => context.go(RouteConstants.profile),
+            onPressed: () => context.push(RouteConstants.profile),
           ),
           IconButton(
             icon: const Icon(Icons.settings),
