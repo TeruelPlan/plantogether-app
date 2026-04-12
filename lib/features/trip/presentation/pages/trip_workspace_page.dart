@@ -100,6 +100,12 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
               child: Scaffold(
                 appBar: AppBar(
                   title: Text(trip.title),
+                  leading: context.canPop()
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          onPressed: () => context.go('/home'),
+                        ),
                   actions: [
                     if (isOrganizer && !isArchived)
                       IconButton(
