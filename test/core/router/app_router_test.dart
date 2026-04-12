@@ -6,6 +6,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:plantogether_app/core/constants/route_constants.dart';
 import 'package:plantogether_app/core/router/app_router.dart';
 import 'package:plantogether_app/core/security/device_id_service.dart';
+import 'package:plantogether_app/features/home/presentation/bloc/home_bloc.dart';
+import 'package:plantogether_app/features/home/presentation/bloc/home_event.dart';
 import 'package:plantogether_app/features/trip/domain/repository/trip_repository.dart';
 
 class MockFlutterSecureStorage extends Mock implements FlutterSecureStorage {}
@@ -29,7 +31,11 @@ void main() {
           RepositoryProvider.value(value: deviceIdService),
           RepositoryProvider<TripRepository>.value(value: mockTripRepository),
         ],
-        child: MaterialApp.router(routerConfig: appRouter.router),
+        child: BlocProvider(
+          create: (_) =>
+              HomeBloc(mockTripRepository)..add(const LoadTrips()),
+          child: MaterialApp.router(routerConfig: appRouter.router),
+        ),
       );
 
   group('AppRouter redirect guard', () {
