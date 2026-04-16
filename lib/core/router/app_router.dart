@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/poll/domain/repository/poll_repository.dart';
+import '../../features/poll/presentation/bloc/poll_bloc.dart';
 import '../../features/trip/domain/repository/trip_repository.dart';
 import '../constants/route_constants.dart';
 import '../security/device_id_service.dart';
@@ -109,8 +111,15 @@ class AppRouter {
           name: 'tripWorkspace',
           builder: (ctx, state) {
             final tripId = state.pathParameters['id']!;
-            return BlocProvider(
-              create: (ctx) => TripDetailBloc(ctx.read<TripRepository>()),
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (ctx) => TripDetailBloc(ctx.read<TripRepository>()),
+                ),
+                BlocProvider(
+                  create: (ctx) => PollBloc(ctx.read<PollRepository>()),
+                ),
+              ],
               child: TripWorkspacePage(tripId: tripId),
             );
           },
