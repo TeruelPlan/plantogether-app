@@ -17,12 +17,12 @@ void main() {
   });
 
   const tripId = 'test-trip-id';
-  const tripModel = TripModel(
+  final tripModel = TripModel(
     id: tripId,
     title: 'Test Trip',
     status: 'PLANNING',
     createdBy: 'device-1',
-    createdAt: '2026-01-01T00:00:00Z',
+    createdAt: DateTime.utc(2026, 1, 1),
     memberCount: 2,
   );
 
@@ -37,7 +37,7 @@ void main() {
       act: (bloc) => bloc.add(const LoadTripDetail(tripId: tripId)),
       expect: () => [
         const TripDetailState.loading(),
-        const TripDetailState.loaded(trip: tripModel),
+        TripDetailState.loaded(trip: tripModel),
       ],
     );
 

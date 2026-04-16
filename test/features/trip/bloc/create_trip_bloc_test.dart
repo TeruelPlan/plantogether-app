@@ -23,14 +23,14 @@ void main() {
       bloc.close();
     });
 
-    const testTrip = TripModel(
+    final testTrip = TripModel(
       id: '123',
       title: 'Beach Trip',
       description: 'Fun at the beach',
       status: 'PLANNING',
       referenceCurrency: 'EUR',
       createdBy: 'device-1',
-      createdAt: '2026-04-04T00:00:00Z',
+      createdAt: DateTime.utc(2026, 4, 4),
     );
 
     blocTest<CreateTripBloc, CreateTripState>(
@@ -50,7 +50,7 @@ void main() {
       )),
       expect: () => [
         const CreateTripState.loading(),
-        const CreateTripState.success(trip: testTrip),
+        CreateTripState.success(trip: testTrip),
       ],
     );
 

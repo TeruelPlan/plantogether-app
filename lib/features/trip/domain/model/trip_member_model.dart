@@ -8,7 +8,7 @@ abstract class TripMemberModel with _$TripMemberModel {
     required String memberId,
     required String displayName,
     required String role,
-    required String joinedAt,
+    required DateTime joinedAt,
     required bool isMe,
   }) = _TripMemberModel;
 }

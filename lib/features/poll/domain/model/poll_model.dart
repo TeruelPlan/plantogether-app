@@ -8,8 +8,8 @@ enum PollStatus { open, locked }
 abstract class PollSlotModel with _$PollSlotModel {
   const factory PollSlotModel({
     required String id,
-    required String startDate,
-    required String endDate,
+    required DateTime startDate,
+    required DateTime endDate,
     required int slotIndex,
   }) = _PollSlotModel;
 }
@@ -22,7 +22,7 @@ abstract class PollModel with _$PollModel {
     required String title,
     required PollStatus status,
     required String createdBy,
-    required String createdAt,
+    required DateTime createdAt,
     @Default([]) List<PollSlotModel> slots,
   }) = _PollModel;
 }

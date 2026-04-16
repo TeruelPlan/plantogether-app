@@ -22,19 +22,19 @@ class FakeMemberListBloc extends MemberListBloc {
   Stream<MemberListState> get stream => Stream.value(_state);
 }
 
-const _organizer = TripMemberModel(
+final _organizer = TripMemberModel(
   memberId: 'member-organizer',
   displayName: 'Alice',
   role: 'ORGANIZER',
-  joinedAt: '2026-01-01T00:00:00Z',
+  joinedAt: DateTime.utc(2026, 1, 1),
   isMe: true,
 );
 
-const _participant = TripMemberModel(
+final _participant = TripMemberModel(
   memberId: 'member-participant',
   displayName: 'Bob',
   role: 'PARTICIPANT',
-  joinedAt: '2026-01-02T00:00:00Z',
+  joinedAt: DateTime.utc(2026, 1, 2),
   isMe: false,
 );
 
@@ -79,18 +79,18 @@ void main() {
     });
 
     testWidgets('remove button not shown when current user is participant', (tester) async {
-      const participantAsMe = TripMemberModel(
+      final participantAsMe = TripMemberModel(
         memberId: 'member-participant',
         displayName: 'Bob',
         role: 'PARTICIPANT',
-        joinedAt: '2026-01-02T00:00:00Z',
+        joinedAt: DateTime.utc(2026, 1, 2),
         isMe: true,
       );
-      const organizerNotMe = TripMemberModel(
+      final organizerNotMe = TripMemberModel(
         memberId: 'member-organizer',
         displayName: 'Alice',
         role: 'ORGANIZER',
-        joinedAt: '2026-01-01T00:00:00Z',
+        joinedAt: DateTime.utc(2026, 1, 1),
         isMe: false,
       );
       when(() => mockRepository.getMembers(any()))

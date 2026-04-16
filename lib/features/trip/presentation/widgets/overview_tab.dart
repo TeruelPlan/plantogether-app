@@ -146,14 +146,8 @@ class OverviewTab extends StatelessWidget {
 
   String? _formatDateRange() {
     if (trip.startDate == null || trip.endDate == null) return null;
-    try {
-      final start = DateTime.parse(trip.startDate!);
-      final end = DateTime.parse(trip.endDate!);
-      final fmt = DateFormat('MMM d');
-      return '${fmt.format(start)} — ${fmt.format(end)}';
-    } catch (_) {
-      return '${trip.startDate} — ${trip.endDate}';
-    }
+    final fmt = DateFormat('MMM d');
+    return '${fmt.format(trip.startDate!)} — ${fmt.format(trip.endDate!)}';
   }
 
   void _switchTab(BuildContext context, int index) {

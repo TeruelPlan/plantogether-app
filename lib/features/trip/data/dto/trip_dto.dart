@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../../../core/utils/date_parser.dart';
 import '../../domain/model/trip_model.dart';
 import 'trip_member_dto.dart';
 
@@ -46,11 +47,11 @@ class TripDto {
         description: description,
         status: status,
         referenceCurrency: referenceCurrency,
-        startDate: startDate,
-        endDate: endDate,
+        startDate: parseDateOrNull(startDate),
+        endDate: parseDateOrNull(endDate),
         createdBy: createdBy,
-        createdAt: createdAt,
-        updatedAt: updatedAt,
+        createdAt: parseDate(createdAt),
+        updatedAt: parseDateOrNull(updatedAt),
         memberCount: memberCount ?? members?.length ?? 0,
         members: members?.map((m) => m.toDomain()).toList() ?? [],
       );

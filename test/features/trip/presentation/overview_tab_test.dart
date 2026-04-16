@@ -7,33 +7,51 @@ import 'package:plantogether_app/features/trip/presentation/widgets/trip_summary
 import 'package:plantogether_app/shared/widgets/member_avatar_stack.dart';
 
 void main() {
-  const tripWithMembers = TripModel(
+  final tripWithMembers = TripModel(
     id: 'trip-1',
     title: 'Beach Trip',
     status: 'PLANNING',
     createdBy: 'device-1',
-    createdAt: '2026-01-01T00:00:00Z',
+    createdAt: DateTime.utc(2026, 1, 1),
+    startDate: DateTime(2026, 6, 1),
+    endDate: DateTime(2026, 6, 7),
     memberCount: 3,
     members: [
       TripMemberModel(
-          memberId: 'member-1', displayName: 'Alice', role: 'OWNER', joinedAt: '2026-01-01', isMe: true),
+          memberId: 'member-1',
+          displayName: 'Alice',
+          role: 'OWNER',
+          joinedAt: DateTime(2026, 1, 1),
+          isMe: true),
       TripMemberModel(
-          memberId: 'member-2', displayName: 'Bob', role: 'MEMBER', joinedAt: '2026-01-02', isMe: false),
+          memberId: 'member-2',
+          displayName: 'Bob',
+          role: 'MEMBER',
+          joinedAt: DateTime(2026, 1, 2),
+          isMe: false),
       TripMemberModel(
-          memberId: 'member-3', displayName: 'Charlie', role: 'MEMBER', joinedAt: '2026-01-03', isMe: false),
+          memberId: 'member-3',
+          displayName: 'Charlie',
+          role: 'MEMBER',
+          joinedAt: DateTime(2026, 1, 3),
+          isMe: false),
     ],
   );
 
-  const tripNoDates = TripModel(
+  final tripNoDates = TripModel(
     id: 'trip-2',
     title: 'No Date Trip',
     status: 'PLANNING',
     createdBy: 'device-1',
-    createdAt: '2026-01-01T00:00:00Z',
+    createdAt: DateTime.utc(2026, 1, 1),
     memberCount: 1,
     members: [
       TripMemberModel(
-          memberId: 'member-1', displayName: 'Alice', role: 'OWNER', joinedAt: '2026-01-01', isMe: true),
+          memberId: 'member-1',
+          displayName: 'Alice',
+          role: 'OWNER',
+          joinedAt: DateTime(2026, 1, 1),
+          isMe: true),
     ],
   );
 
@@ -67,6 +85,12 @@ void main() {
 
       expect(find.byType(MemberAvatarStack), findsOneWidget);
       expect(find.text('3 members'), findsOneWidget);
+    });
+
+    testWidgets('formats date range with MMM d pattern', (tester) async {
+      await tester.pumpWidget(buildTestWidget(tripWithMembers));
+
+      expect(find.text('Jun 1 — Jun 7'), findsOneWidget);
     });
   });
 }

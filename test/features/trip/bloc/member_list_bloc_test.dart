@@ -11,19 +11,19 @@ class MockTripRepository extends Mock implements TripRepository {}
 
 const _tripId = 'trip-1';
 
-const _organizer = TripMemberModel(
+final _organizer = TripMemberModel(
   memberId: 'member-organizer',
   displayName: 'Alice',
   role: 'ORGANIZER',
-  joinedAt: '2026-01-01T00:00:00Z',
+  joinedAt: DateTime.utc(2026, 1, 1),
   isMe: true,
 );
 
-const _participant = TripMemberModel(
+final _participant = TripMemberModel(
   memberId: 'member-participant',
   displayName: 'Bob',
   role: 'PARTICIPANT',
-  joinedAt: '2026-01-02T00:00:00Z',
+  joinedAt: DateTime.utc(2026, 1, 2),
   isMe: false,
 );
 
@@ -45,7 +45,7 @@ void main() {
       act: (bloc) => bloc.add(const LoadMembers(_tripId)),
       expect: () => [
         const MemberListState.loading(),
-        const MemberListState.loaded(members: [_organizer, _participant]),
+        MemberListState.loaded(members: [_organizer, _participant]),
       ],
     );
 
@@ -76,7 +76,7 @@ void main() {
             .thenAnswer((_) async {});
         return MemberListBloc(mockRepository);
       },
-      seed: () => const MemberListState.loaded(
+      seed: () => MemberListState.loaded(
         members: [_organizer, _participant],
       ),
       act: (bloc) => bloc.add(const RemoveMember(
@@ -84,7 +84,7 @@ void main() {
         memberId: 'member-participant',
       )),
       expect: () => [
-        const MemberListState.loaded(members: [_organizer]),
+        MemberListState.loaded(members: [_organizer]),
       ],
     );
 
@@ -95,7 +95,7 @@ void main() {
             .thenThrow(Exception('Server error'));
         return MemberListBloc(mockRepository);
       },
-      seed: () => const MemberListState.loaded(
+      seed: () => MemberListState.loaded(
         members: [_organizer, _participant],
       ),
       act: (bloc) => bloc.add(const RemoveMember(
@@ -103,8 +103,8 @@ void main() {
         memberId: 'member-participant',
       )),
       expect: () => [
-        const MemberListState.loaded(members: [_organizer]),
-        const MemberListState.loaded(members: [_organizer, _participant]),
+        MemberListState.loaded(members: [_organizer]),
+        MemberListState.loaded(members: [_organizer, _participant]),
         isA<MemberListState>().having(
           (s) => s.whenOrNull(failure: (m) => m),
           'failure message',

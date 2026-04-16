@@ -14,19 +14,19 @@ void main() {
   late MockTripRepository mockRepository;
   late MemberListBloc bloc;
 
-  const members = [
+  final members = [
     TripMemberModel(
       memberId: 'member-organizer',
       displayName: 'Alice',
       role: 'ORGANIZER',
-      joinedAt: '2026-01-01T00:00:00Z',
+      joinedAt: DateTime.utc(2026, 1, 1),
       isMe: true,
     ),
     TripMemberModel(
       memberId: 'member-participant',
       displayName: 'Bob',
       role: 'PARTICIPANT',
-      joinedAt: '2026-01-02T00:00:00Z',
+      joinedAt: DateTime.utc(2026, 1, 2),
       isMe: false,
     ),
   ];
@@ -36,7 +36,7 @@ void main() {
     when(() => mockRepository.getMembers(any()))
         .thenAnswer((_) async => members);
     bloc = MemberListBloc(mockRepository);
-    bloc.emit(const MemberListState.loaded(members: members));
+    bloc.emit(MemberListState.loaded(members: members));
   });
 
   tearDown(() {

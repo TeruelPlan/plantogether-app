@@ -18,18 +18,24 @@ void main() {
   });
 
   const tripId = 'trip-1';
-  const samplePoll = PollModel(
+  final samplePoll = PollModel(
     id: 'poll-1',
     tripId: tripId,
     title: 'When to leave?',
     status: PollStatus.open,
     createdBy: 'device-1',
-    createdAt: '2026-04-01T00:00:00Z',
+    createdAt: DateTime.utc(2026, 4, 1),
     slots: [
       PollSlotModel(
-          id: 's1', startDate: '2026-06-01', endDate: '2026-06-07', slotIndex: 0),
+          id: 's1',
+          startDate: DateTime(2026, 6, 1),
+          endDate: DateTime(2026, 6, 7),
+          slotIndex: 0),
       PollSlotModel(
-          id: 's2', startDate: '2026-06-15', endDate: '2026-06-21', slotIndex: 1),
+          id: 's2',
+          startDate: DateTime(2026, 6, 15),
+          endDate: DateTime(2026, 6, 21),
+          slotIndex: 1),
     ],
   );
 
@@ -55,7 +61,7 @@ void main() {
 
   testWidgets('renders PollCard for each poll when loaded', (tester) async {
     when(() => mockRepository.getPollsForTrip(tripId))
-        .thenAnswer((_) async => const [samplePoll]);
+        .thenAnswer((_) async => [samplePoll]);
 
     await tester.pumpWidget(buildWidget());
     await tester.pumpAndSettle();
@@ -68,7 +74,7 @@ void main() {
     when(() => mockRepository.getPollsForTrip(tripId))
         .thenAnswer((_) async {
       await Future.delayed(const Duration(seconds: 1));
-      return const [samplePoll];
+      return [samplePoll];
     });
 
     await tester.pumpWidget(buildWidget());
