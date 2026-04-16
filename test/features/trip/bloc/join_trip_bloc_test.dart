@@ -34,12 +34,12 @@ void main() {
       isMember: false,
     );
 
-    const trip = TripModel(
+    final trip = TripModel(
       id: tripId,
       title: 'Beach Trip',
       status: 'PLANNING',
       createdBy: 'device-1',
-      createdAt: '2026-04-04T00:00:00Z',
+      createdAt: DateTime.utc(2026, 4, 4),
     );
 
     blocTest<JoinTripBloc, JoinTripState>(
@@ -93,7 +93,7 @@ void main() {
           bloc.add(const SubmitJoin(tripId: tripId, token: token)),
       expect: () => [
         const JoinTripState.joining(),
-        const JoinTripState.joined(trip: trip),
+        JoinTripState.joined(trip: trip),
       ],
     );
 

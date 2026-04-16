@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../../../core/utils/date_parser.dart';
 import '../../domain/model/trip_member_model.dart';
 
 part 'trip_member_dto.g.dart';
@@ -29,7 +30,7 @@ class TripMemberDto {
         memberId: id,
         displayName: displayName,
         role: role,
-        joinedAt: joinedAt,
+        joinedAt: parseDate(joinedAt),
         isMe: isMe,
       );
 }

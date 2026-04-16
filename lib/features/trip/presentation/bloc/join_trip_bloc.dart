@@ -29,7 +29,7 @@ class JoinTripBloc extends Bloc<JoinTripEvent, JoinTripState> {
           description: preview.description,
           status: 'PLANNING',
           createdBy: '',
-          createdAt: '',
+          createdAt: DateTime.fromMillisecondsSinceEpoch(0),
         );
         emit(JoinTripState.joined(trip: trip));
       } else {

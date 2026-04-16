@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../../../core/utils/date_parser.dart';
 import '../../domain/model/poll_model.dart';
 
 part 'poll_dto.g.dart';
@@ -25,8 +26,8 @@ class PollSlotDto {
 
   PollSlotModel toDomain() => PollSlotModel(
         id: id,
-        startDate: startDate,
-        endDate: endDate,
+        startDate: parseDate(startDate),
+        endDate: parseDate(endDate),
         slotIndex: slotIndex,
       );
 }
@@ -64,7 +65,7 @@ class PollDto {
             ? PollStatus.locked
             : PollStatus.open,
         createdBy: createdBy,
-        createdAt: createdAt,
+        createdAt: parseDate(createdAt),
         slots: slots?.map((s) => s.toDomain()).toList() ?? [],
       );
 }

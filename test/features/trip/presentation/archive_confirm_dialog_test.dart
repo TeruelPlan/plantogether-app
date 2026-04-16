@@ -57,13 +57,13 @@ void main() {
     when(() => mockRepository.archiveTrip('trip-1'))
         .thenAnswer((_) async => Future<TripModel>.delayed(
               const Duration(seconds: 10),
-              () => const TripModel(
+              () => TripModel(
                 id: 'trip-1',
                 title: 'Trip',
                 status: 'ARCHIVED',
                 referenceCurrency: 'EUR',
                 createdBy: 'device-1',
-                createdAt: '2026-01-01T00:00:00Z',
+                createdAt: DateTime.utc(2026, 1, 1),
                 memberCount: 1,
               ),
             ));

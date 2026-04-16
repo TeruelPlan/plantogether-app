@@ -13,14 +13,14 @@ void main() {
   late MockTripRepository mockRepository;
   late TripDetailBloc bloc;
 
-  const trip = TripModel(
+  final trip = TripModel(
     id: 'trip-1',
     title: 'Beach Trip',
     description: 'Fun at the beach',
     status: 'PLANNING',
     referenceCurrency: 'EUR',
     createdBy: 'device-1',
-    createdAt: '2026-01-01T00:00:00Z',
+    createdAt: DateTime.utc(2026, 1, 1),
     memberCount: 1,
   );
 
