@@ -38,6 +38,15 @@ class TripUpdateReceived extends PollDetailEvent {
   List<Object?> get props => [payload];
 }
 
+class LockPoll extends PollDetailEvent {
+  final String slotId;
+
+  const LockPoll(this.slotId);
+
+  @override
+  List<Object?> get props => [slotId];
+}
+
 class ConnectionStateChanged extends PollDetailEvent {
   final StompConnectionState connectionState;
 
@@ -45,4 +54,12 @@ class ConnectionStateChanged extends PollDetailEvent {
 
   @override
   List<Object?> get props => [connectionState];
+}
+
+class SuccessBannerConsumed extends PollDetailEvent {
+  const SuccessBannerConsumed();
+}
+
+class ErrorBannerConsumed extends PollDetailEvent {
+  const ErrorBannerConsumed();
 }

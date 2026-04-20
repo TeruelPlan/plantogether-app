@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:plantogether_app/core/network/stomp_client_manager.dart';
@@ -142,7 +143,7 @@ void main() {
         }));
       },
       verify: (bloc) {
-        final detail = bloc.state.whenOrNull(loaded: (d, _, _, _) => d);
+        final detail = bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
         expect(detail, isNotNull);
         final slotA = detail!.slots.firstWhere((s) => s.id == slotAId);
         expect(slotA.score, 2);
@@ -171,7 +172,7 @@ void main() {
       },
       verify: (bloc) {
         final slotA = bloc.state
-            .whenOrNull(loaded: (d, _, _, _) => d)!
+            .whenOrNull(loaded: (d, _, _, _, _, _) => d)!
             .slots
             .firstWhere((s) => s.id == slotAId);
         expect(slotA.score, 0);
@@ -192,8 +193,8 @@ void main() {
         bloc.add(const ConnectionStateChanged(StompConnectionState.reconnecting));
       },
       verify: (bloc) {
-        final banner = bloc.state
-            .whenOrNull(loaded: (_, _, _, connectionBanner) => connectionBanner);
+        final banner = bloc.state.whenOrNull(
+            loaded: (_, _, _, connectionBanner, _, _) => connectionBanner);
         expect(banner, 'Reconnecting…');
       },
     );
@@ -224,17 +225,157 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       final detail =
-          bloc.state.whenOrNull(loaded: (d, _, _, _) => d);
+          bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
       final slotA = detail!.slots.firstWhere((s) => s.id == slotAId);
       final slotB = detail.slots.firstWhere((s) => s.id == slotBId);
       expect(slotA.score, 2,
           reason: 'slot A optimistic value preserved after slot B rollback');
       expect(slotB.score, 0, reason: 'slot B reverted');
       final banner =
-          bloc.state.whenOrNull(loaded: (_, _, e, _) => e);
+          bloc.state.whenOrNull(loaded: (_, _, e, _, _, _) => e);
       expect(banner, contains('Could not save vote for'));
 
       await bloc.close();
     });
+
+    PollDetailModel lockedDetail() => sampleDetail().copyWith(
+          status: PollStatus.locked,
+          lockedSlotId: slotAId,
+        );
+
+    blocTest<PollDetailBloc, PollDetailState>(
+      'lockPoll_success_emitsLockedDetail',
+      build: () {
+        when(() => mockRepository.getPollDetail(pollId))
+            .thenAnswer((_) async => sampleDetail());
+        when(() => mockRepository.lockPoll(pollId: pollId, slotId: slotAId))
+            .thenAnswer((_) async => lockedDetail());
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(const LoadPollDetail(pollId));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        bloc.add(const LockPoll(slotAId));
+      },
+      wait: const Duration(milliseconds: 50),
+      verify: (bloc) {
+        final detail = bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
+        expect(detail, isNotNull);
+        expect(detail!.status, PollStatus.locked);
+        expect(detail.lockedSlotId, slotAId);
+        final banner = bloc.state
+            .whenOrNull(loaded: (_, _, _, _, s, _) => s);
+        expect(banner, contains('Dates confirmed'));
+      },
+    );
+
+    blocTest<PollDetailBloc, PollDetailState>(
+      'lockPoll_409_emitsConflictBanner',
+      build: () {
+        when(() => mockRepository.getPollDetail(pollId))
+            .thenAnswer((_) async => sampleDetail());
+        when(() => mockRepository.lockPoll(pollId: pollId, slotId: slotAId))
+            .thenThrow(DioException(
+          requestOptions: RequestOptions(path: '/lock'),
+          response: Response(
+              requestOptions: RequestOptions(path: '/lock'), statusCode: 409),
+        ));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(const LoadPollDetail(pollId));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        bloc.add(const LockPoll(slotAId));
+      },
+      wait: const Duration(milliseconds: 50),
+      verify: (bloc) {
+        final banner = bloc.state
+            .whenOrNull(loaded: (_, _, e, _, _, _) => e);
+        expect(banner, 'Poll is already locked');
+      },
+    );
+
+    blocTest<PollDetailBloc, PollDetailState>(
+      'lockPoll_403_emitsForbiddenBanner',
+      build: () {
+        when(() => mockRepository.getPollDetail(pollId))
+            .thenAnswer((_) async => sampleDetail());
+        when(() => mockRepository.lockPoll(pollId: pollId, slotId: slotAId))
+            .thenThrow(DioException(
+          requestOptions: RequestOptions(path: '/lock'),
+          response: Response(
+              requestOptions: RequestOptions(path: '/lock'), statusCode: 403),
+        ));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(const LoadPollDetail(pollId));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        bloc.add(const LockPoll(slotAId));
+      },
+      wait: const Duration(milliseconds: 50),
+      verify: (bloc) {
+        final banner = bloc.state
+            .whenOrNull(loaded: (_, _, e, _, _, _) => e);
+        expect(banner, 'Only the organizer can lock this poll');
+      },
+    );
+
+    blocTest<PollDetailBloc, PollDetailState>(
+      'tripUpdate_pollLocked_transitionsStateToLocked',
+      build: () {
+        when(() => mockRepository.getPollDetail(pollId))
+            .thenAnswer((_) async => sampleDetail());
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(const LoadPollDetail(pollId));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        bloc.add(const TripUpdateReceived({
+          'type': 'POLL_LOCKED',
+          'pollId': pollId,
+          'tripId': tripId,
+          'slotId': slotAId,
+          'startDate': '2026-06-07',
+          'endDate': '2026-06-08',
+        }));
+      },
+      verify: (bloc) {
+        final detail =
+            bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
+        expect(detail!.status, PollStatus.locked);
+        expect(detail.lockedSlotId, slotAId);
+        final banner = bloc.state
+            .whenOrNull(loaded: (_, _, _, _, s, _) => s);
+        expect(banner, contains('Dates confirmed'));
+      },
+    );
+
+    blocTest<PollDetailBloc, PollDetailState>(
+      'tripUpdate_pollLocked_wrongPollId_isIgnored',
+      build: () {
+        when(() => mockRepository.getPollDetail(pollId))
+            .thenAnswer((_) async => sampleDetail());
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(const LoadPollDetail(pollId));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        bloc.add(const TripUpdateReceived({
+          'type': 'POLL_LOCKED',
+          'pollId': 'other-poll',
+          'tripId': tripId,
+          'slotId': slotAId,
+          'startDate': '2026-06-07',
+          'endDate': '2026-06-08',
+        }));
+      },
+      verify: (bloc) {
+        final detail =
+            bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
+        expect(detail!.status, PollStatus.open);
+        expect(detail.lockedSlotId, isNull);
+      },
+    );
   });
 }

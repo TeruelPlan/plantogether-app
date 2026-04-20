@@ -10,14 +10,20 @@ class DatePollMatrixWidget extends StatelessWidget {
   final PollDetailModel detail;
   final String myDeviceId;
   final bool isLocked;
+  final bool isOrganizer;
+  final bool locking;
   final void Function(String slotId, VoteStatus status)? onVote;
+  final ValueChanged<String>? onLockTap;
 
   const DatePollMatrixWidget({
     super.key,
     required this.detail,
     required this.myDeviceId,
     required this.isLocked,
+    this.isOrganizer = false,
+    this.locking = false,
     this.onVote,
+    this.onLockTap,
   });
 
   static final DateFormat _monthDay = DateFormat('MMM d');
@@ -28,6 +34,7 @@ class DatePollMatrixWidget extends StatelessWidget {
       return const Center(child: Text('No slots'));
     }
 
+    final theme = Theme.of(context);
     final members = detail.members;
     final hasVotes = detail.slots.any((s) => s.score > 0);
     final maxScore =
@@ -35,13 +42,29 @@ class DatePollMatrixWidget extends StatelessWidget {
 
     final compact = MediaQuery.of(context).size.width < 600 && members.length > 4;
 
+    final lockedSlotId = isLocked ? detail.lockedSlotId : null;
+
+    PollSlotDetailModel? lockedSlot;
+    if (lockedSlotId != null) {
+      for (final s in detail.slots) {
+        if (s.id == lockedSlotId) {
+          lockedSlot = s;
+          break;
+        }
+      }
+    }
+
     final matrix = _MatrixContent(
       slots: detail.slots,
       members: members,
       myDeviceId: myDeviceId,
       isLocked: isLocked,
+      isOrganizer: isOrganizer,
+      locking: locking,
       onVote: onVote,
+      onLockTap: onLockTap,
       maxScore: maxScore,
+      lockedSlotId: lockedSlotId,
       compact: compact,
     );
 
@@ -50,12 +73,29 @@ class DatePollMatrixWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (!hasVotes)
+          if (isLocked && lockedSlot != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Semantics(
+                  label:
+                      'Poll confirmed: ${_monthDay.format(lockedSlot.startDate)} to ${_monthDay.format(lockedSlot.endDate)}',
+                  child: Chip(
+                    avatar: Icon(Icons.check_circle,
+                        color: theme.colorScheme.onPrimaryContainer),
+                    label: const Text('Confirmed ✓'),
+                    backgroundColor: theme.colorScheme.primaryContainer,
+                  ),
+                ),
+              ),
+            ),
+          if (!hasVotes && !isLocked)
             Padding(
               padding: const EdgeInsets.all(12),
               child: Text(
                 'Be the first to vote · Tap a slot to respond',
-                style: Theme.of(context).textTheme.bodySmall,
+                style: theme.textTheme.bodySmall,
               ),
             ),
           Expanded(child: matrix),
@@ -67,6 +107,10 @@ class DatePollMatrixWidget extends StatelessWidget {
   static String formatSlotLabel(PollSlotDetailModel slot) {
     return '${_monthDay.format(slot.startDate)}–${_monthDay.format(slot.endDate)}';
   }
+
+  static String semanticSlotLabel(PollSlotDetailModel slot) {
+    return '${_monthDay.format(slot.startDate)} to ${_monthDay.format(slot.endDate)}';
+  }
 }
 
 class _MatrixContent extends StatefulWidget {
@@ -74,8 +118,12 @@ class _MatrixContent extends StatefulWidget {
   final List<PollMemberModel> members;
   final String myDeviceId;
   final bool isLocked;
+  final bool isOrganizer;
+  final bool locking;
   final void Function(String slotId, VoteStatus status)? onVote;
+  final ValueChanged<String>? onLockTap;
   final int maxScore;
+  final String? lockedSlotId;
   final bool compact;
 
   const _MatrixContent({
@@ -83,8 +131,12 @@ class _MatrixContent extends StatefulWidget {
     required this.members,
     required this.myDeviceId,
     required this.isLocked,
+    required this.isOrganizer,
+    required this.locking,
     required this.onVote,
+    required this.onLockTap,
     required this.maxScore,
+    required this.lockedSlotId,
     required this.compact,
   });
 
@@ -113,7 +165,13 @@ class _MatrixContentState extends State<_MatrixContent> {
       separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final slot = widget.slots[index];
-        final isWinner = widget.maxScore > 0 && slot.score == widget.maxScore;
+        final bool isWinner;
+        if (widget.isLocked) {
+          isWinner = slot.id == widget.lockedSlotId;
+        } else {
+          isWinner = widget.maxScore > 0 && slot.score == widget.maxScore;
+        }
+        final canLock = !widget.isLocked && widget.isOrganizer;
         return _SlotRow(
           slot: slot,
           members: widget.members,
@@ -122,6 +180,9 @@ class _MatrixContentState extends State<_MatrixContent> {
           isWinner: isWinner,
           label: DatePollMatrixWidget.formatSlotLabel(slot),
           onVote: widget.onVote,
+          canLock: canLock,
+          locking: widget.locking,
+          onLockTap: widget.onLockTap,
         );
       },
     );
@@ -207,6 +268,9 @@ class _SlotRow extends StatelessWidget {
   final bool isWinner;
   final String label;
   final void Function(String slotId, VoteStatus status)? onVote;
+  final bool canLock;
+  final bool locking;
+  final ValueChanged<String>? onLockTap;
 
   const _SlotRow({
     required this.slot,
@@ -216,6 +280,9 @@ class _SlotRow extends StatelessWidget {
     required this.isWinner,
     required this.label,
     required this.onVote,
+    required this.canLock,
+    required this.locking,
+    required this.onLockTap,
   });
 
   @override
@@ -247,7 +314,7 @@ class _SlotRow extends StatelessWidget {
             final isMe = m.deviceId == myDeviceId;
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: isMe
+              child: (isMe && !isLocked)
                   ? _OwnVoteCell(
                       slot: slot,
                       member: m,
@@ -275,6 +342,21 @@ class _SlotRow extends StatelessWidget {
               ),
             ),
           ),
+          if (canLock)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Semantics(
+                label:
+                    'Lock poll for ${DatePollMatrixWidget.semanticSlotLabel(slot)}',
+                button: true,
+                child: TextButton.icon(
+                  icon: const Icon(Icons.lock_outline, size: 18),
+                  label: const Text('Lock'),
+                  onPressed:
+                      locking ? null : () => onLockTap?.call(slot.id),
+                ),
+              ),
+            ),
         ],
       ),
     );

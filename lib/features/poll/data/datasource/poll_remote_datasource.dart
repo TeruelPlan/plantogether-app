@@ -64,4 +64,15 @@ class PollRemoteDatasource {
     );
     return VoteResponseDto.fromJson(response.data as Map<String, dynamic>);
   }
+
+  Future<PollDetailDto> lockPoll({
+    required String pollId,
+    required String slotId,
+  }) async {
+    final response = await _dioClient.dio.put(
+      '/api/v1/polls/$pollId/lock',
+      data: {'slotId': slotId},
+    );
+    return PollDetailDto.fromJson(response.data as Map<String, dynamic>);
+  }
 }

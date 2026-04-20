@@ -46,4 +46,16 @@ class PollRepositoryImpl implements PollRepository {
     );
     return dto.toDomain();
   }
+
+  @override
+  Future<PollDetailModel> lockPoll({
+    required String pollId,
+    required String slotId,
+  }) async {
+    final dto = await _remoteDatasource.lockPoll(
+      pollId: pollId,
+      slotId: slotId,
+    );
+    return dto.toDomain();
+  }
 }

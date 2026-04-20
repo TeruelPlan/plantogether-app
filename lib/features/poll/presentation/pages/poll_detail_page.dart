@@ -18,7 +18,8 @@ class PollDetailPage extends StatefulWidget {
 }
 
 class _PollDetailPageState extends State<PollDetailPage> {
-  Object? _lastBannerIdentity;
+  Object? _lastErrorBannerIdentity;
+  Object? _lastSuccessBannerIdentity;
 
   @override
   void initState() {
@@ -33,43 +34,79 @@ class _PollDetailPageState extends State<PollDetailPage> {
         title: const Text('Poll'),
       ),
       body: BlocConsumer<PollDetailBloc, PollDetailState>(
-        listener: _handleBanner,
+        listener: _handleBanners,
         builder: (context, state) {
           return state.when(
             initial: _buildSpinner,
             loading: _buildSpinner,
             error: (message) => _buildError(context, message),
-            loaded: (detail, myDeviceId, _, connectionBanner) =>
-                _buildLoaded(context, detail, myDeviceId, connectionBanner),
+            loaded: (detail, myDeviceId, _, connectionBanner, _, locking) =>
+                _buildLoaded(
+                    context, detail, myDeviceId, connectionBanner, locking),
           );
         },
       ),
     );
   }
 
-  void _handleBanner(BuildContext context, PollDetailState state) {
-    final banner = state.whenOrNull(
-      loaded: (_, _, errorBanner, _) => errorBanner,
+  void _handleBanners(BuildContext context, PollDetailState state) {
+    state.whenOrNull(
+      loaded: (_, _, errorBanner, _, successBanner, _) {
+        _surfaceErrorBanner(context, state, errorBanner);
+        _surfaceSuccessBanner(context, state, successBanner);
+      },
     );
+  }
+
+  void _surfaceErrorBanner(
+      BuildContext context, PollDetailState state, String? banner) {
     if (banner == null || banner.isEmpty) {
-      _lastBannerIdentity = null;
+      _lastErrorBannerIdentity = null;
       return;
     }
-    // Key dedup on the state instance, not the message, so identical messages
-    // emitted in distinct loaded() states each surface a SnackBar.
-    final identity = state;
-    if (identical(identity, _lastBannerIdentity)) return;
-    _lastBannerIdentity = identity;
+    if (identical(state, _lastErrorBannerIdentity)) return;
+    _lastErrorBannerIdentity = state;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
         content: Text(banner),
         duration: const Duration(seconds: 3),
       ));
+    context.read<PollDetailBloc>().add(const ErrorBannerConsumed());
   }
 
-  Widget _buildSpinner() =>
-      const Center(child: CircularProgressIndicator());
+  void _surfaceSuccessBanner(
+      BuildContext context, PollDetailState state, String? banner) {
+    if (banner == null || banner.isEmpty) {
+      _lastSuccessBannerIdentity = null;
+      return;
+    }
+    if (identical(state, _lastSuccessBannerIdentity)) return;
+    _lastSuccessBannerIdentity = state;
+    final theme = Theme.of(context);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle,
+                color: theme.colorScheme.onPrimaryContainer),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                banner,
+                style: TextStyle(color: theme.colorScheme.onPrimaryContainer),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: theme.colorScheme.primaryContainer,
+        duration: const Duration(seconds: 4),
+      ));
+    context.read<PollDetailBloc>().add(const SuccessBannerConsumed());
+  }
+
+  Widget _buildSpinner() => const Center(child: CircularProgressIndicator());
 
   Widget _buildError(BuildContext context, String message) {
     return Center(
@@ -96,12 +133,19 @@ class _PollDetailPageState extends State<PollDetailPage> {
       BuildContext context,
       PollDetailModel detail,
       String myDeviceId,
-      String? connectionBanner) {
+      String? connectionBanner,
+      bool locking) {
     final theme = Theme.of(context);
     final isLocked = detail.status == PollStatus.locked;
     final chipColor = isLocked
         ? theme.colorScheme.onSurfaceVariant
         : theme.colorScheme.primary;
+    final me = detail.members.firstWhere(
+      (m) => m.deviceId == myDeviceId,
+      orElse: () => const PollMemberModel(
+          deviceId: '', role: 'PARTICIPANT', displayName: ''),
+    );
+    final isOrganizer = me.role == 'ORGANIZER';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -133,14 +177,49 @@ class _PollDetailPageState extends State<PollDetailPage> {
             detail: detail,
             myDeviceId: myDeviceId,
             isLocked: isLocked,
+            isOrganizer: isOrganizer,
+            locking: locking,
             onVote: isLocked
                 ? null
                 : (slotId, status) => context
                     .read<PollDetailBloc>()
                     .add(CastVote(slotId: slotId, status: status)),
+            onLockTap: (isLocked || !isOrganizer)
+                ? null
+                : (slotId) => _confirmAndLock(context, detail, slotId),
           ),
         ),
       ],
     );
+  }
+
+  Future<void> _confirmAndLock(
+      BuildContext context, PollDetailModel detail, String slotId) async {
+    final slot = detail.slots.firstWhere(
+      (s) => s.id == slotId,
+      orElse: () => detail.slots.first,
+    );
+    final label = DatePollMatrixWidget.formatSlotLabel(slot);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Lock $label?'),
+        content:
+            const Text('All members will be notified. This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Lock'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+    context.read<PollDetailBloc>().add(LockPoll(slotId));
   }
 }

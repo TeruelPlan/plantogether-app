@@ -17,4 +17,9 @@ abstract class PollRepository {
     required String slotId,
     required VoteStatus status,
   });
+
+  Future<PollDetailModel> lockPoll({
+    required String pollId,
+    required String slotId,
+  });
 }
