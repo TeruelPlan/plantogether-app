@@ -26,4 +26,24 @@ class PollRepositoryImpl implements PollRepository {
     );
     return dto.toDomain();
   }
+
+  @override
+  Future<PollDetailModel> getPollDetail(String pollId) async {
+    final dto = await _remoteDatasource.getPollDetail(pollId);
+    return dto.toDomain();
+  }
+
+  @override
+  Future<PollVoteModel> respond({
+    required String pollId,
+    required String slotId,
+    required VoteStatus status,
+  }) async {
+    final dto = await _remoteDatasource.respond(
+      pollId: pollId,
+      slotId: slotId,
+      status: status,
+    );
+    return dto.toDomain();
+  }
 }

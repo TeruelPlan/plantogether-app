@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../bloc/poll_bloc.dart';
 import '../bloc/poll_event.dart';
@@ -37,7 +38,11 @@ class _DatesTabState extends State<DatesTab> {
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: polls.length,
-                    itemBuilder: (_, i) => PollCard(poll: polls[i]),
+                    itemBuilder: (_, i) => PollCard(
+                      poll: polls[i],
+                      onTap: () => context.push(
+                          '/trips/${widget.tripId}/polls/${polls[i].id}'),
+                    ),
                   ),
           );
         },

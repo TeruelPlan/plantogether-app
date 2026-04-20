@@ -9,4 +9,12 @@ abstract class PollRepository {
     required String title,
     required List<SlotInput> slots,
   });
+
+  Future<PollDetailModel> getPollDetail(String pollId);
+
+  Future<PollVoteModel> respond({
+    required String pollId,
+    required String slotId,
+    required VoteStatus status,
+  });
 }

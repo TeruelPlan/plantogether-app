@@ -1,7 +1,11 @@
 import 'package:intl/intl.dart';
 
 import '../../../../core/network/dio_client.dart';
+import '../../domain/model/poll_model.dart';
+import '../dto/poll_detail_dto.dart';
+import '../dto/respond_request_dto.dart';
 import '../dto/poll_dto.dart';
+import '../dto/vote_response_dto.dart';
 
 class SlotInput {
   final DateTime startDate;
@@ -41,5 +45,23 @@ class PollRemoteDatasource {
       },
     );
     return PollDto.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<PollDetailDto> getPollDetail(String pollId) async {
+    final response = await _dioClient.dio.get('/api/v1/polls/$pollId');
+    return PollDetailDto.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<VoteResponseDto> respond({
+    required String pollId,
+    required String slotId,
+    required VoteStatus status,
+  }) async {
+    final body = RespondRequestDto.from(slotId: slotId, status: status).toJson();
+    final response = await _dioClient.dio.put(
+      '/api/v1/polls/$pollId/respond',
+      data: body,
+    );
+    return VoteResponseDto.fromJson(response.data as Map<String, dynamic>);
   }
 }

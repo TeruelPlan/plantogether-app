@@ -3,8 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/poll/domain/repository/poll_repository.dart';
 import '../../features/poll/presentation/bloc/poll_bloc.dart';
+import '../../features/poll/presentation/bloc/poll_detail_bloc.dart';
+import '../../features/poll/presentation/pages/poll_detail_page.dart';
 import '../../features/trip/domain/repository/trip_repository.dart';
 import '../constants/route_constants.dart';
+import '../network/stomp_client_manager.dart';
 import '../security/device_id_service.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
@@ -145,6 +148,21 @@ class AppRouter {
             return BlocProvider(
               create: (ctx) => MemberListBloc(ctx.read<TripRepository>()),
               child: MemberListPage(tripId: tripId),
+            );
+          },
+        ),
+        GoRoute(
+          path: RouteConstants.pollDetail,
+          name: 'pollDetail',
+          builder: (ctx, state) {
+            final pollId = state.pathParameters['pollId']!;
+            return BlocProvider(
+              create: (ctx) => PollDetailBloc(
+                ctx.read<PollRepository>(),
+                ctx.read<DeviceIdService>(),
+                ctx.read<StompClientManager>(),
+              ),
+              child: PollDetailPage(pollId: pollId),
             );
           },
         ),

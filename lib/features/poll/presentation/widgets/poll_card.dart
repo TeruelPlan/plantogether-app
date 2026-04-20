@@ -30,12 +30,7 @@ class PollCard extends StatelessWidget {
           labelStyle: TextStyle(color: chipColor, fontWeight: FontWeight.w600),
           side: BorderSide.none,
         ),
-        onTap: onTap ??
-            () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Vote feature coming soon')),
-              );
-            },
+        onTap: onTap,
       ),
     );
   }
