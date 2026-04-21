@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../constants/api_constants.dart';
 import '../security/device_id_service.dart';
 
 class DioClient {
@@ -7,10 +8,7 @@ class DioClient {
 
   DioClient(this._deviceIdService) {
     _dio = Dio(BaseOptions(
-      baseUrl: const String.fromEnvironment(
-        'API_BASE_URL',
-        defaultValue: 'http://127.0.0.1:8081',
-      ),
+      baseUrl: ApiConstants.baseUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 30),
     ));

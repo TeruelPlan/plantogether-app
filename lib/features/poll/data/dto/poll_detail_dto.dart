@@ -1,6 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../../../core/utils/date_parser.dart';
 import '../../domain/model/poll_model.dart';
 
 part 'poll_detail_dto.g.dart';
@@ -50,8 +49,8 @@ class PollVoteDto {
 @JsonSerializable()
 class PollSlotDetailDto {
   final String id;
-  final String startDate;
-  final String endDate;
+  final DateTime startDate;
+  final DateTime endDate;
   final int slotIndex;
   final int score;
   final List<PollVoteDto>? votes;
@@ -72,8 +71,8 @@ class PollSlotDetailDto {
 
   PollSlotDetailModel toDomain() => PollSlotDetailModel(
         id: id,
-        startDate: parseDate(startDate),
-        endDate: parseDate(endDate),
+        startDate: startDate,
+        endDate: endDate,
         slotIndex: slotIndex,
         score: score,
         votes: votes?.map((v) => v.toDomain()).toList() ?? const [],
@@ -112,7 +111,7 @@ class PollDetailDto {
   final String status;
   final String? lockedSlotId;
   final String createdBy;
-  final String createdAt;
+  final DateTime createdAt;
   final List<PollSlotDetailDto>? slots;
   final List<PollMemberDto>? members;
 
@@ -140,7 +139,7 @@ class PollDetailDto {
         status: _pollStatusFromWire(status),
         lockedSlotId: lockedSlotId,
         createdBy: createdBy,
-        createdAt: parseDate(createdAt),
+        createdAt: createdAt,
         slots: slots?.map((s) => s.toDomain()).toList() ?? const [],
         members: members?.map((m) => m.toDomain()).toList() ?? const [],
       );
