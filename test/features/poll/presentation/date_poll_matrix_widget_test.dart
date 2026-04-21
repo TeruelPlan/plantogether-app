@@ -58,7 +58,10 @@ void main() {
   Widget buildWidget({
     required PollDetailModel detail,
     bool isLocked = false,
+    bool isOrganizer = false,
+    bool locking = false,
     void Function(String, VoteStatus)? onVote,
+    ValueChanged<String>? onLockTap,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -66,7 +69,10 @@ void main() {
           detail: detail,
           myDeviceId: myDeviceId,
           isLocked: isLocked,
+          isOrganizer: isOrganizer,
+          locking: locking,
           onVote: onVote,
+          onLockTap: onLockTap,
         ),
       ),
     );
@@ -118,13 +124,66 @@ void main() {
         findsOneWidget);
   });
 
-  testWidgets('LOCKED poll disables SegmentedButton', (tester) async {
+  testWidgets('readonlyVariant_hidesSegmentedButton', (tester) async {
+    final detail = buildDetail(status: PollStatus.locked).copyWith(
+      lockedSlotId: 'slot-a',
+    );
+    await tester.pumpWidget(buildWidget(detail: detail, isLocked: true));
+    expect(find.byType(SegmentedButton<VoteStatus>), findsNothing);
+  });
+
+  testWidgets('rendersLockButton_whenOpenAndOrganizer', (tester) async {
     await tester.pumpWidget(buildWidget(
-      detail: buildDetail(status: PollStatus.locked),
-      isLocked: true,
+      detail: buildDetail(),
+      isOrganizer: true,
+      onLockTap: (_) {},
     ));
-    final segment = tester.widget<SegmentedButton<VoteStatus>>(
-        find.byType(SegmentedButton<VoteStatus>).first);
-    expect(segment.onSelectionChanged, isNull);
+    expect(find.widgetWithText(TextButton, 'Lock'), findsNWidgets(2));
+  });
+
+  testWidgets('hidesLockButton_whenParticipant', (tester) async {
+    await tester.pumpWidget(buildWidget(
+      detail: buildDetail(),
+      isOrganizer: false,
+    ));
+    expect(find.widgetWithText(TextButton, 'Lock'), findsNothing);
+  });
+
+  testWidgets('rendersConfirmedChip_whenLocked', (tester) async {
+    final detail = buildDetail(status: PollStatus.locked).copyWith(
+      lockedSlotId: 'slot-a',
+    );
+    await tester.pumpWidget(buildWidget(detail: detail, isLocked: true));
+    expect(find.text('Confirmed ✓'), findsOneWidget);
+    expect(find.byIcon(Icons.check_circle), findsOneWidget);
+  });
+
+  testWidgets('highlightsLockedSlot_regardlessOfScore', (tester) async {
+    // Slot B has score 0; when locked, it should still be highlighted.
+    final detail = buildDetail(
+      status: PollStatus.locked,
+      slots: [
+        PollSlotDetailModel(
+          id: 'slot-a',
+          startDate: DateTime(2026, 6, 6),
+          endDate: DateTime(2026, 6, 8),
+          slotIndex: 0,
+          score: 5,
+          votes: const [],
+        ),
+        PollSlotDetailModel(
+          id: 'slot-b',
+          startDate: DateTime(2026, 7, 6),
+          endDate: DateTime(2026, 7, 8),
+          slotIndex: 1,
+          score: 0,
+          votes: const [],
+        ),
+      ],
+    ).copyWith(lockedSlotId: 'slot-b');
+    await tester.pumpWidget(buildWidget(detail: detail, isLocked: true));
+    // Locked slot B label still renders; chip announces its dates.
+    expect(find.text('Confirmed ✓'), findsOneWidget);
+    expect(find.textContaining('Jul 6'), findsOneWidget);
   });
 }

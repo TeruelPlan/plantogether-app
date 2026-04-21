@@ -4,6 +4,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/network/stomp_client_manager.dart';
 import '../../../../core/security/device_id_service.dart';
@@ -14,6 +15,8 @@ import 'poll_detail_event.dart';
 import 'poll_detail_state.dart';
 
 class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
+  static final DateFormat _dateLabelFormat = DateFormat('MMM d');
+
   final PollRepository _repository;
   final DeviceIdService _deviceIdService;
   final StompClientManager _stompClientManager;
@@ -30,8 +33,25 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
   ) : super(const PollDetailState.initial()) {
     on<LoadPollDetail>(_onLoadPollDetail, transformer: droppable());
     on<CastVote>(_onCastVote, transformer: sequential());
+    on<LockPoll>(_onLockPoll, transformer: droppable());
     on<TripUpdateReceived>(_onTripUpdateReceived);
     on<ConnectionStateChanged>(_onConnectionStateChanged);
+    on<SuccessBannerConsumed>(_onSuccessBannerConsumed);
+    on<ErrorBannerConsumed>(_onErrorBannerConsumed);
+  }
+
+  void _onSuccessBannerConsumed(
+      SuccessBannerConsumed event, Emitter<PollDetailState> emit) {
+    final loaded = _currentLoaded();
+    if (loaded == null || loaded.successBanner == null) return;
+    emit(loaded.copyWith(clearSuccessBanner: true));
+  }
+
+  void _onErrorBannerConsumed(
+      ErrorBannerConsumed event, Emitter<PollDetailState> emit) {
+    final loaded = _currentLoaded();
+    if (loaded == null || loaded.errorBanner == null) return;
+    emit(loaded.copyWith(clearErrorBanner: true));
   }
 
   Future<void> _onLoadPollDetail(
@@ -70,8 +90,14 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
 
     final payload = event.payload;
     if (payload['pollId'] != _pollId) return;
-    if (payload['type'] != 'POLL_VOTE_CAST') {
-      // Forward-compat: any other known/unknown event type (e.g. POLL_LOCKED in 3-4) triggers a full refresh.
+
+    final type = payload['type'];
+    if (type == 'POLL_LOCKED') {
+      _applyPollLockedFrame(loaded, payload, emit);
+      return;
+    }
+    if (type != 'POLL_VOTE_CAST') {
+      // Forward-compat: unknown event type → trigger a full refresh.
       add(LoadPollDetail(_pollId!));
       return;
     }
@@ -101,7 +127,6 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
     if (affectedSlot == null) return;
 
     if (isOwnEcho && affectedSlot.score == newSlotScore) {
-      // Optimistic update already matches the server; nothing to reconcile.
       return;
     }
 
@@ -116,11 +141,30 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
       return slot.copyWith(votes: updatedVotes, score: newSlotScore);
     }).toList();
 
-    emit(PollDetailState.loaded(
+    emit(loaded.copyWith(
       detail: loaded.detail.copyWith(slots: updatedSlots),
-      myDeviceId: loaded.myDeviceId,
-      errorBanner: loaded.errorBanner,
-      connectionBanner: loaded.connectionBanner,
+    ));
+  }
+
+  void _applyPollLockedFrame(_LoadedSnapshot loaded, Map<String, dynamic> payload,
+      Emitter<PollDetailState> emit) {
+    final slotId = payload['slotId'] as String?;
+    final startDate = payload['startDate'] as String?;
+    final endDate = payload['endDate'] as String?;
+    if (slotId == null) return;
+    if (loaded.detail.status == PollStatus.locked &&
+        loaded.detail.lockedSlotId == slotId) {
+      return;
+    }
+    final updatedDetail = loaded.detail.copyWith(
+      status: PollStatus.locked,
+      lockedSlotId: slotId,
+    );
+    final banner = _formatDatesBanner(startDate, endDate);
+    emit(loaded.copyWith(
+      detail: updatedDetail,
+      successBanner: banner,
+      locking: false,
     ));
   }
 
@@ -135,35 +179,21 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
       case StompConnectionState.connecting:
         return;
       case StompConnectionState.connected:
-        // Only trigger a re-sync when recovering from an actual outage (reconnecting/disconnected),
-        // not on the initial CONNECT right after first subscribe (the page already fetched the detail).
         final recovering = prev == StompConnectionState.reconnecting ||
             prev == StompConnectionState.disconnected;
         if (recovering && _pollId != null) {
           add(LoadPollDetail(_pollId!));
         }
         if (loaded.connectionBanner == null) return;
-        emit(PollDetailState.loaded(
-          detail: loaded.detail,
-          myDeviceId: loaded.myDeviceId,
-          errorBanner: loaded.errorBanner,
-        ));
+        emit(loaded.copyWith(clearConnectionBanner: true));
         return;
       case StompConnectionState.reconnecting:
       case StompConnectionState.disconnected:
         if (loaded.connectionBanner == 'Reconnecting…') return;
-        emit(PollDetailState.loaded(
-          detail: loaded.detail,
-          myDeviceId: loaded.myDeviceId,
-          errorBanner: loaded.errorBanner,
-          connectionBanner: 'Reconnecting…',
-        ));
+        emit(loaded.copyWith(connectionBanner: 'Reconnecting…'));
         return;
       case StompConnectionState.rejected:
-        // Terminal authorization failure (server sent STOMP ERROR frame).
-        emit(PollDetailState.loaded(
-          detail: loaded.detail,
-          myDeviceId: loaded.myDeviceId,
+        emit(loaded.copyWith(
           errorBanner: 'You lost access to this trip',
           connectionBanner: 'Offline — tap to retry',
         ));
@@ -191,11 +221,7 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
       myDeviceId: loaded.myDeviceId,
       status: event.status,
     );
-    emit(PollDetailState.loaded(
-      detail: optimistic,
-      myDeviceId: loaded.myDeviceId,
-      connectionBanner: loaded.connectionBanner,
-    ));
+    emit(loaded.copyWith(detail: optimistic));
 
     try {
       await _repository.respond(
@@ -218,6 +244,50 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
     }
   }
 
+  Future<void> _onLockPoll(
+      LockPoll event, Emitter<PollDetailState> emit) async {
+    final loaded = _currentLoaded();
+    if (loaded == null || _pollId == null) return;
+    if (loaded.detail.status != PollStatus.open) return;
+
+    emit(loaded.copyWith(locking: true));
+
+    try {
+      final updated = await _repository.lockPoll(
+        pollId: _pollId!,
+        slotId: event.slotId,
+      );
+      if (emit.isDone) return;
+      final winning = updated.slots.firstWhere(
+        (s) => s.id == updated.lockedSlotId,
+        orElse: () => updated.slots.first,
+      );
+      emit(loaded.copyWith(
+        detail: updated,
+        locking: false,
+        successBanner: _formatSlotDatesBanner(winning),
+      ));
+    } on DioException catch (error, stackTrace) {
+      debugPrint('LockPoll failed (${error.response?.statusCode}): $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (emit.isDone) return;
+      final current = _currentLoaded() ?? loaded;
+      emit(current.copyWith(
+        locking: false,
+        errorBanner: _bannerForLockStatus(error.response?.statusCode),
+      ));
+    } catch (error, stackTrace) {
+      debugPrint('LockPoll failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (emit.isDone) return;
+      final current = _currentLoaded() ?? loaded;
+      emit(current.copyWith(
+        locking: false,
+        errorBanner: 'Could not lock the poll',
+      ));
+    }
+  }
+
   void _emitPerSlotRollback(
     Emitter<PollDetailState> emit,
     PollSlotDetailModel previousSlot, {
@@ -230,12 +300,7 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
           .map((s) => s.id == previousSlot.id ? previousSlot : s)
           .toList(),
     );
-    emit(PollDetailState.loaded(
-      detail: restored,
-      myDeviceId: loaded.myDeviceId,
-      errorBanner: banner,
-      connectionBanner: loaded.connectionBanner,
-    ));
+    emit(loaded.copyWith(detail: restored, errorBanner: banner));
   }
 
   String _bannerForStatus(int? statusCode, PollSlotDetailModel slot) {
@@ -249,8 +314,48 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
     }
   }
 
+  String _bannerForLockStatus(int? statusCode) {
+    switch (statusCode) {
+      case 403:
+        return 'Only the organizer can lock this poll';
+      case 409:
+        return 'Poll is already locked';
+      case 400:
+        return 'Selected slot does not belong to this poll';
+      case 404:
+        return 'Poll not found';
+      default:
+        return 'Could not lock the poll';
+    }
+  }
+
   String _slotLabel(PollSlotDetailModel slot) =>
       DatePollMatrixWidget.formatSlotLabel(slot);
+
+  String _formatSlotDatesBanner(PollSlotDetailModel slot) {
+    final start = _dateLabelFormat.format(slot.startDate);
+    final end = _dateLabelFormat.format(slot.endDate);
+    if (start == end) {
+      return 'Dates confirmed: $start';
+    }
+    return 'Dates confirmed: $start–$end';
+  }
+
+  String _formatDatesBanner(String? startDate, String? endDate) {
+    if (startDate == null || endDate == null) {
+      return 'Dates confirmed';
+    }
+    try {
+      final start = DateTime.parse(startDate);
+      final end = DateTime.parse(endDate);
+      final s = _dateLabelFormat.format(start);
+      final e = _dateLabelFormat.format(end);
+      if (s == e) return 'Dates confirmed: $s';
+      return 'Dates confirmed: $s–$e';
+    } catch (_) {
+      return 'Dates confirmed: $startDate–$endDate';
+    }
+  }
 
   PollDetailModel _applyOptimisticVote(
     PollDetailModel detail, {
@@ -292,10 +397,18 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
     }
   }
 
-  _LoadedHelper? _currentLoaded() {
+  _LoadedSnapshot? _currentLoaded() {
     return state.whenOrNull(
-      loaded: (detail, myDeviceId, errorBanner, connectionBanner) =>
-          _LoadedHelper(detail, myDeviceId, errorBanner, connectionBanner),
+      loaded: (detail, myDeviceId, errorBanner, connectionBanner,
+              successBanner, locking) =>
+          _LoadedSnapshot(
+        detail: detail,
+        myDeviceId: myDeviceId,
+        errorBanner: errorBanner,
+        connectionBanner: connectionBanner,
+        successBanner: successBanner,
+        locking: locking,
+      ),
     );
   }
 
@@ -307,12 +420,42 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
   }
 }
 
-class _LoadedHelper {
+class _LoadedSnapshot {
   final PollDetailModel detail;
   final String myDeviceId;
   final String? errorBanner;
   final String? connectionBanner;
+  final String? successBanner;
+  final bool locking;
 
-  _LoadedHelper(
-      this.detail, this.myDeviceId, this.errorBanner, this.connectionBanner);
+  const _LoadedSnapshot({
+    required this.detail,
+    required this.myDeviceId,
+    this.errorBanner,
+    this.connectionBanner,
+    this.successBanner,
+    this.locking = false,
+  });
+
+  PollDetailState copyWith({
+    PollDetailModel? detail,
+    String? errorBanner,
+    String? connectionBanner,
+    String? successBanner,
+    bool? locking,
+    bool clearConnectionBanner = false,
+    bool clearErrorBanner = false,
+    bool clearSuccessBanner = false,
+  }) {
+    return PollDetailState.loaded(
+      detail: detail ?? this.detail,
+      myDeviceId: myDeviceId,
+      errorBanner: clearErrorBanner ? null : (errorBanner ?? this.errorBanner),
+      connectionBanner:
+          clearConnectionBanner ? null : (connectionBanner ?? this.connectionBanner),
+      successBanner:
+          clearSuccessBanner ? null : (successBanner ?? this.successBanner),
+      locking: locking ?? this.locking,
+    );
+  }
 }

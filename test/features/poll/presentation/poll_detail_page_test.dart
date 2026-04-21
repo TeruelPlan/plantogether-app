@@ -45,12 +45,17 @@ void main() {
   const myDeviceId = 'device-me';
   const slotId = 'slot-a';
 
-  PollDetailModel buildDetail({PollStatus status = PollStatus.open}) {
+  PollDetailModel buildDetail({
+    PollStatus status = PollStatus.open,
+    String role = 'PARTICIPANT',
+    String? lockedSlotId,
+  }) {
     return PollDetailModel(
       id: pollId,
       tripId: tripId,
       title: 'Summer?',
       status: status,
+      lockedSlotId: lockedSlotId,
       createdBy: 'organizer',
       createdAt: DateTime.utc(2026, 4, 1),
       slots: [
@@ -63,9 +68,9 @@ void main() {
           votes: const [],
         ),
       ],
-      members: const [
+      members: [
         PollMemberModel(
-            deviceId: myDeviceId, role: 'PARTICIPANT', displayName: 'Me'),
+            deviceId: myDeviceId, role: role, displayName: 'Me'),
       ],
     );
   }
@@ -98,16 +103,79 @@ void main() {
     expect(find.text('OPEN'), findsOneWidget);
   });
 
-  testWidgets('LOCKED poll disables SegmentedButton', (tester) async {
-    when(() => mockRepository.getPollDetail(pollId))
-        .thenAnswer((_) async => buildDetail(status: PollStatus.locked));
+  testWidgets('LOCKED poll hides SegmentedButton (readonly variant)',
+      (tester) async {
+    when(() => mockRepository.getPollDetail(pollId)).thenAnswer((_) async =>
+        buildDetail(status: PollStatus.locked, lockedSlotId: slotId));
 
     await tester.pumpWidget(buildPage());
     await tester.pumpAndSettle();
 
     expect(find.text('LOCKED'), findsOneWidget);
-    final segment = tester.widget<SegmentedButton<VoteStatus>>(
-        find.byType(SegmentedButton<VoteStatus>));
-    expect(segment.onSelectionChanged, isNull);
+    expect(find.byType(SegmentedButton<VoteStatus>), findsNothing);
+    expect(find.text('Confirmed ✓'), findsOneWidget);
+  });
+
+  testWidgets('tapLock_showsConfirmationDialog', (tester) async {
+    when(() => mockRepository.getPollDetail(pollId))
+        .thenAnswer((_) async => buildDetail(role: 'ORGANIZER'));
+
+    await tester.pumpWidget(buildPage());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, 'Lock'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.textContaining('Lock '), findsWidgets);
+    expect(find.text('Cancel'), findsOneWidget);
+  });
+
+  testWidgets('cancelDialog_doesNotDispatch', (tester) async {
+    when(() => mockRepository.getPollDetail(pollId))
+        .thenAnswer((_) async => buildDetail(role: 'ORGANIZER'));
+
+    await tester.pumpWidget(buildPage());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, 'Lock'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    verifyNever(() =>
+        mockRepository.lockPoll(pollId: any(named: 'pollId'), slotId: any(named: 'slotId')));
+  });
+
+  testWidgets('confirmDialog_dispatchesLockPoll', (tester) async {
+    when(() => mockRepository.getPollDetail(pollId))
+        .thenAnswer((_) async => buildDetail(role: 'ORGANIZER'));
+    when(() => mockRepository.lockPoll(pollId: pollId, slotId: slotId))
+        .thenAnswer((_) async =>
+            buildDetail(status: PollStatus.locked, lockedSlotId: slotId));
+
+    await tester.pumpWidget(buildPage());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, 'Lock'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Lock'));
+    await tester.pumpAndSettle();
+
+    verify(() => mockRepository.lockPoll(pollId: pollId, slotId: slotId))
+        .called(1);
+  });
+
+  testWidgets('lockedPoll_hidesAllLockButtons', (tester) async {
+    when(() => mockRepository.getPollDetail(pollId)).thenAnswer((_) async =>
+        buildDetail(
+            status: PollStatus.locked,
+            role: 'ORGANIZER',
+            lockedSlotId: slotId));
+
+    await tester.pumpWidget(buildPage());
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(TextButton, 'Lock'), findsNothing);
   });
 }

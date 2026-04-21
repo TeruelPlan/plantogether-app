@@ -13,6 +13,8 @@ sealed class PollDetailState with _$PollDetailState {
     required String myDeviceId,
     String? errorBanner,
     String? connectionBanner,
+    String? successBanner,
+    @Default(false) bool locking,
   }) = _Loaded;
   const factory PollDetailState.error({required String message}) = _Error;
 }
