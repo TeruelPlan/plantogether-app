@@ -312,22 +312,24 @@ class _SlotRow extends StatelessWidget {
           ...members.map((m) {
             final vote = votesByDevice[m.deviceId];
             final isMe = m.deviceId == myDeviceId;
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: (isMe && !isLocked)
-                  ? _OwnVoteCell(
-                      slot: slot,
-                      member: m,
-                      currentVote: vote,
-                      isLocked: isLocked,
-                      slotLabel: label,
-                      onVote: onVote,
-                    )
-                  : _ReadOnlyVoteCell(
-                      vote: vote,
-                      memberName: m.displayName,
-                      slotLabel: label,
-                    ),
+            return Flexible(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: (isMe && !isLocked)
+                    ? _OwnVoteCell(
+                        slot: slot,
+                        member: m,
+                        currentVote: vote,
+                        isLocked: isLocked,
+                        slotLabel: label,
+                        onVote: onVote,
+                      )
+                    : _ReadOnlyVoteCell(
+                        vote: vote,
+                        memberName: m.displayName,
+                        slotLabel: label,
+                      ),
+              ),
             );
           }),
           const SizedBox(width: 8),
@@ -343,18 +345,16 @@ class _SlotRow extends StatelessWidget {
             ),
           ),
           if (canLock)
-            Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: Semantics(
-                label:
-                    'Lock poll for ${DatePollMatrixWidget.semanticSlotLabel(slot)}',
-                button: true,
-                child: TextButton.icon(
-                  icon: const Icon(Icons.lock_outline, size: 18),
-                  label: const Text('Lock'),
-                  onPressed:
-                      locking ? null : () => onLockTap?.call(slot.id),
-                ),
+            Semantics(
+              label:
+                  'Lock poll for ${DatePollMatrixWidget.semanticSlotLabel(slot)}',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.lock_outline, size: 18),
+                tooltip: 'Lock dates',
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(minWidth: 32, maxWidth: 40, minHeight: 32, maxHeight: 40),
+                onPressed: locking ? null : () => onLockTap?.call(slot.id),
               ),
             ),
         ],
