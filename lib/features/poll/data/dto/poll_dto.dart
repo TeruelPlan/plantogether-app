@@ -1,6 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../../../core/utils/date_parser.dart';
 import '../../domain/model/poll_model.dart';
 
 part 'poll_dto.g.dart';
@@ -8,8 +7,8 @@ part 'poll_dto.g.dart';
 @JsonSerializable()
 class PollSlotDto {
   final String id;
-  final String startDate;
-  final String endDate;
+  final DateTime startDate;
+  final DateTime endDate;
   final int slotIndex;
 
   const PollSlotDto({
@@ -26,8 +25,8 @@ class PollSlotDto {
 
   PollSlotModel toDomain() => PollSlotModel(
         id: id,
-        startDate: parseDate(startDate),
-        endDate: parseDate(endDate),
+        startDate: startDate,
+        endDate: endDate,
         slotIndex: slotIndex,
       );
 }
@@ -39,7 +38,7 @@ class PollDto {
   final String title;
   final String status;
   final String createdBy;
-  final String createdAt;
+  final DateTime createdAt;
   final List<PollSlotDto>? slots;
 
   const PollDto({
@@ -65,7 +64,7 @@ class PollDto {
             ? PollStatus.locked
             : PollStatus.open,
         createdBy: createdBy,
-        createdAt: parseDate(createdAt),
+        createdAt: createdAt,
         slots: slots?.map((s) => s.toDomain()).toList() ?? [],
       );
 }

@@ -74,7 +74,7 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
   Future<void> _ensureStompSubscription(String tripId) async {
     if (_stompSubscription != null) return;
     final subscription = await _stompClientManager.connect(
-      endpointPath: '/ws-poll',
+      endpointPath: '/ws',
       tripId: tripId,
       onTripUpdate: (payload) => add(TripUpdateReceived(payload)),
     );
