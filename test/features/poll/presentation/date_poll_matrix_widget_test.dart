@@ -138,7 +138,7 @@ void main() {
       isOrganizer: true,
       onLockTap: (_) {},
     ));
-    expect(find.widgetWithText(TextButton, 'Lock'), findsNWidgets(2));
+    expect(find.widgetWithIcon(IconButton, Icons.lock_outline), findsNWidgets(2));
   });
 
   testWidgets('hidesLockButton_whenParticipant', (tester) async {
@@ -146,7 +146,7 @@ void main() {
       detail: buildDetail(),
       isOrganizer: false,
     ));
-    expect(find.widgetWithText(TextButton, 'Lock'), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.lock_outline), findsNothing);
   });
 
   testWidgets('rendersConfirmedChip_whenLocked', (tester) async {

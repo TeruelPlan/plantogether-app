@@ -123,7 +123,7 @@ void main() {
     await tester.pumpWidget(buildPage());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(TextButton, 'Lock'));
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.lock_outline));
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsOneWidget);
@@ -138,7 +138,7 @@ void main() {
     await tester.pumpWidget(buildPage());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(TextButton, 'Lock'));
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.lock_outline));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
@@ -157,7 +157,7 @@ void main() {
     await tester.pumpWidget(buildPage());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(TextButton, 'Lock'));
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.lock_outline));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Lock'));
     await tester.pumpAndSettle();
@@ -176,6 +176,6 @@ void main() {
     await tester.pumpWidget(buildPage());
     await tester.pumpAndSettle();
 
-    expect(find.widgetWithText(TextButton, 'Lock'), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.lock_outline), findsNothing);
   });
 }
