@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/destination/domain/repository/destination_repository.dart';
+import '../../features/destination/presentation/bloc/destination_bloc.dart';
 import '../../features/poll/domain/repository/poll_repository.dart';
 import '../../features/poll/presentation/bloc/poll_bloc.dart';
 import '../../features/poll/presentation/bloc/poll_detail_bloc.dart';
@@ -121,6 +123,10 @@ class AppRouter {
                 ),
                 BlocProvider(
                   create: (ctx) => PollBloc(ctx.read<PollRepository>()),
+                ),
+                BlocProvider(
+                  create: (ctx) =>
+                      DestinationBloc(ctx.read<DestinationRepository>()),
                 ),
               ],
               child: TripWorkspacePage(tripId: tripId),
