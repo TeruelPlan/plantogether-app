@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../destination/presentation/widgets/destinations_tab.dart';
 import '../../../poll/presentation/widgets/dates_tab.dart';
 import '../../domain/model/trip_model.dart';
 import '../bloc/trip_detail_bloc.dart';
@@ -155,7 +156,7 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                               )),
                     ),
                     DatesTab(tripId: widget.tripId),
-                    const Center(child: Text('Destinations')),
+                    DestinationsTab(tripId: widget.tripId),
                     const Center(child: Text('Expenses')),
                     const Center(child: Text('Tasks')),
                   ],

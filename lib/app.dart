@@ -10,6 +10,9 @@ import 'features/home/presentation/bloc/home_event.dart';
 import 'features/profile/data/datasource/profile_remote_datasource.dart';
 import 'features/profile/data/repository/profile_repository_impl.dart';
 import 'features/profile/domain/repository/profile_repository.dart';
+import 'features/destination/data/datasource/destination_remote_datasource.dart';
+import 'features/destination/data/repository/destination_repository_impl.dart';
+import 'features/destination/domain/repository/destination_repository.dart';
 import 'features/poll/data/datasource/poll_remote_datasource.dart';
 import 'features/poll/data/repository/poll_repository_impl.dart';
 import 'features/poll/domain/repository/poll_repository.dart';
@@ -46,6 +49,12 @@ class PlanTogetherApp extends StatelessWidget {
         RepositoryProvider<PollRepository>(
             create: (ctx) =>
                 PollRepositoryImpl(ctx.read<PollRemoteDatasource>())),
+        RepositoryProvider(
+            create: (ctx) =>
+                DestinationRemoteDatasource(ctx.read<DioClient>())),
+        RepositoryProvider<DestinationRepository>(
+            create: (ctx) => DestinationRepositoryImpl(
+                ctx.read<DestinationRemoteDatasource>())),
       ],
       child: BlocProvider(
         create: (ctx) =>
