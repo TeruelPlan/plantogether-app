@@ -1,7 +1,6 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domain/model/trip_member_model.dart';
 import '../../domain/repository/trip_repository.dart';
 import 'member_list_event.dart';
 import 'member_list_state.dart';

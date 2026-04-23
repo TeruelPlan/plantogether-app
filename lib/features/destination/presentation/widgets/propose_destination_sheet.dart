@@ -87,7 +87,7 @@ class _ProposeDestinationSheetState extends State<ProposeDestinationSheet> {
         if (!_submitted) return;
         state.maybeWhen(
           loading: () => _loadingSeenAfterSubmit = true,
-          loaded: (_) {
+          loaded: (_, mode, myDeviceId) {
             if (!_loadingSeenAfterSubmit) return;
             if (!mounted) return;
             Navigator.of(context).pop();

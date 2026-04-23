@@ -126,7 +126,10 @@ class AppRouter {
                 ),
                 BlocProvider(
                   create: (ctx) =>
-                      DestinationBloc(ctx.read<DestinationRepository>()),
+                      DestinationBloc(
+                    ctx.read<DestinationRepository>(),
+                    deviceIdService: ctx.read<DeviceIdService>(),
+                  ),
                 ),
               ],
               child: TripWorkspacePage(tripId: tripId),

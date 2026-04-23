@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../domain/model/destination_model.dart';
+import '../../domain/model/vote_config_model.dart';
 
 part 'destination_state.freezed.dart';
 
@@ -10,6 +11,8 @@ sealed class DestinationState with _$DestinationState {
   const factory DestinationState.loading() = _Loading;
   const factory DestinationState.loaded({
     required List<DestinationModel> destinations,
+    VoteMode? mode,
+    String? myDeviceId,
   }) = _Loaded;
   const factory DestinationState.error({required String message}) = _Error;
 }

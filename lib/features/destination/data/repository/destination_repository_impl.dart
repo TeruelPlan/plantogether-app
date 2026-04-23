@@ -1,4 +1,5 @@
 import '../../domain/model/destination_model.dart';
+import '../../domain/model/vote_config_model.dart';
 import '../../domain/repository/destination_repository.dart';
 import '../datasource/destination_remote_datasource.dart';
 import '../dto/destination_dto.dart';
@@ -29,5 +30,27 @@ class DestinationRepositoryImpl implements DestinationRepository {
     );
     final dto = await _remoteDatasource.propose(tripId, body);
     return dto.toDomain();
+  }
+
+  @override
+  Future<VoteConfigModel> getVoteConfig(String tripId) async {
+    final dto = await _remoteDatasource.getVoteConfig(tripId);
+    return dto.toDomain();
+  }
+
+  @override
+  Future<VoteConfigModel> updateVoteConfig(String tripId, VoteMode mode) async {
+    final dto = await _remoteDatasource.putVoteConfig(tripId, mode);
+    return dto.toDomain();
+  }
+
+  @override
+  Future<void> castVote(String destinationId, {int? rank}) {
+    return _remoteDatasource.castVote(destinationId, rank: rank);
+  }
+
+  @override
+  Future<void> retractVote(String destinationId) {
+    return _remoteDatasource.retractVote(destinationId);
   }
 }

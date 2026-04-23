@@ -149,14 +149,20 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                                 extra: trip.title,
                               )
                           : null,
-                      onMembersTap: () => context
-                          .push('/trips/${widget.tripId}/members')
-                          .then((_) => context.read<TripDetailBloc>().add(
-                                LoadTripDetail(tripId: widget.tripId),
-                              )),
+                      onMembersTap: () {
+                        final bloc = context.read<TripDetailBloc>();
+                        context
+                            .push('/trips/${widget.tripId}/members')
+                            .then((_) => bloc.add(
+                                  LoadTripDetail(tripId: widget.tripId),
+                                ));
+                      },
                     ),
                     DatesTab(tripId: widget.tripId),
-                    DestinationsTab(tripId: widget.tripId),
+                    DestinationsTab(
+                      tripId: widget.tripId,
+                      isOrganizer: isOrganizer,
+                    ),
                     const Center(child: Text('Expenses')),
                     const Center(child: Text('Tasks')),
                   ],
