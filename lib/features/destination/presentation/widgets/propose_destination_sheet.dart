@@ -85,7 +85,7 @@ class _ProposeDestinationSheetState extends State<ProposeDestinationSheet> {
       listener: (context, state) {
         if (!_submitted) return;
         state.maybeWhen(
-          loaded: (_, __, ___) {
+          loaded: (_, _, _) {
             if (!mounted) return;
             Navigator.of(context).pop();
           },

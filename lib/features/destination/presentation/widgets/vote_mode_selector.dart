@@ -26,17 +26,17 @@ class VoteModeSelector extends StatelessWidget {
 
   Future<void> _handleSelection(
     BuildContext context,
-    VoteMode newMode,
-  ) async {
-    if (newMode == currentMode) return;/ Confirmation cases:
-    //   - RANKING -> SIMPLE / APPROVAL with existing ranked votes: ranks will be cleared.
+    VoteMode newMode,) async {
+    if (newMode == currentMode) return;
+    // Confirmation cases:
+    ///   - RANKING -> SIMPLE / APPROVAL with existing ranked votes: ranks will be cleared.
     //   - APPROVAL -> SIMPLE with existing approvals: members may hold several approvals
     //     that collapse into an ambiguous "one vote per trip" constraint.
     //   - SIMPLE / APPROVAL -> RANKING with existing votes: members must re-rank explicitly.
     String? warning;
     if (currentMode == VoteMode.ranking &&
         ((newMode == VoteMode.simple || newMode == VoteMode.approval) &&
-        _hasAnyVotes) {
+            _hasAnyVotes)) {
       warning = 'Switching from Ranking will clear existing rank values. '
           'Voters will remain counted but their ranks will be reset.';
     } else if (currentMode == VoteMode.approval &&
@@ -58,7 +58,7 @@ class VoteModeSelector extends StatelessWidget {
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Switch vote mode?'),
-          content: Text(warning),
+          content: Text(warning!),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
