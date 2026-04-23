@@ -22,6 +22,9 @@ enum VoteMode {
     }
   }
 
+  /// Parses a server wire value into a [VoteMode]. Falls back to
+  /// [VoteMode.simple] for unknown values so older clients keep working
+  /// when the server introduces a new mode.
   static VoteMode fromWire(String raw) {
     switch (raw.toUpperCase()) {
       case 'SIMPLE':
@@ -31,7 +34,7 @@ enum VoteMode {
       case 'RANKING':
         return VoteMode.ranking;
       default:
-        throw ArgumentError('Unknown VoteMode wire value: $raw');
+        return VoteMode.simple;
     }
   }
 }

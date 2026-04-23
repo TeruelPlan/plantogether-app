@@ -70,35 +70,43 @@ class VoteInputWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (mode) {
       case VoteMode.simple:
-        return Row(
-          key: const ValueKey('vote_input_simple'),
-          children: [
-            IconButton(
-              tooltip: isMySimpleChoice ? 'Retract vote' : 'Vote',
-              icon: Icon(
-                isMySimpleChoice
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
+        return InkWell(
+          key: const ValueKey('vote_simple_row'),
+          onTap: () => _castSimple(context),
+          child: Row(
+            children: [
+              IconButton(
+                key: const ValueKey('vote_simple_button'),
+                tooltip: isMySimpleChoice ? 'Retract vote' : 'Vote',
+                icon: Icon(
+                  isMySimpleChoice
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                ),
+                onPressed: () => _castSimple(context),
               ),
-              onPressed: () => _castSimple(context),
-            ),
-            Text(isMySimpleChoice ? 'Your pick' : 'Pick this'),
-            const Spacer(),
-            _votesCountBadge(context),
-          ],
+              Text(isMySimpleChoice ? 'Your pick' : 'Pick this'),
+              const Spacer(),
+              _votesCountBadge(context),
+            ],
+          ),
         );
       case VoteMode.approval:
-        return Row(
-          key: const ValueKey('vote_input_approval'),
-          children: [
-            Checkbox(
-              value: isMyApproval,
-              onChanged: (v) => _toggleApproval(context, v),
-            ),
-            const Text('Approve'),
-            const Spacer(),
-            _votesCountBadge(context),
-          ],
+        return InkWell(
+          key: const ValueKey('vote_approval_row'),
+          onTap: () => _toggleApproval(context, !isMyApproval),
+          child: Row(
+            children: [
+              Checkbox(
+                key: const ValueKey('vote_approval_checkbox'),
+                value: isMyApproval,
+                onChanged: (v) => _toggleApproval(context, v),
+              ),
+              const Text('Approve'),
+              const Spacer(),
+              _votesCountBadge(context),
+            ],
+          ),
         );
       case VoteMode.ranking:
         final items = <DropdownMenuItem<int?>>[
@@ -115,6 +123,7 @@ class VoteInputWidget extends StatelessWidget {
             const Text('Your rank:'),
             const SizedBox(width: 8),
             DropdownButton<int?>(
+              key: const ValueKey('vote_ranking_dropdown'),
               value: myRankForThisDestination,
               items: items,
               onChanged: (v) => _chooseRank(context, v),

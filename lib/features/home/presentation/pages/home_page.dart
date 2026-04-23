@@ -25,12 +25,14 @@ class HomePage extends StatelessWidget {
             const Text('Paste the invitation link you received:'),
             const SizedBox(height: 12),
             TextField(
+              key: const ValueKey('home_join_link_field'),
               controller: controller,
               autofocus: true,
               decoration: InputDecoration(
                 hintText: 'https://...',
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
+                  key: const ValueKey('home_join_paste_button'),
                   icon: const Icon(Icons.paste),
                   tooltip: 'Paste from clipboard',
                   onPressed: () async {
@@ -49,10 +51,12 @@ class HomePage extends StatelessWidget {
         ),
         actions: [
           TextButton(
+            key: const ValueKey('home_join_cancel_button'),
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel'),
           ),
           FilledButton(
+            key: const ValueKey('home_join_submit_button'),
             onPressed: () {
               final parsed = _parseInviteLink(controller.text.trim());
               Navigator.of(dialogContext).pop();
@@ -96,16 +100,19 @@ class HomePage extends StatelessWidget {
         title: const Text('PlanTogether'),
         actions: [
           IconButton(
+            key: const ValueKey('home_join_link_button'),
             icon: const Icon(Icons.link),
             tooltip: 'Join with link',
             onPressed: () => _showJoinDialog(context),
           ),
           IconButton(
+            key: const ValueKey('home_profile_button'),
             icon: const Icon(Icons.person),
             tooltip: 'Profile',
             onPressed: () => context.push(RouteConstants.profile),
           ),
           IconButton(
+            key: const ValueKey('home_settings_button'),
             icon: const Icon(Icons.settings),
             tooltip: 'Settings',
             onPressed: () => context.push(RouteConstants.settings),
@@ -115,9 +122,14 @@ class HomePage extends StatelessWidget {
       body: BlocBuilder<HomeBloc, HomeState>(
         builder: (context, state) {
           return state.when(
-            initial: () => const Center(child: CircularProgressIndicator()),
-            loading: () => const Center(child: CircularProgressIndicator()),
+            initial: () => const Center(
+                key: ValueKey('home_loading'),
+                child: CircularProgressIndicator()),
+            loading: () => const Center(
+                key: ValueKey('home_loading'),
+                child: CircularProgressIndicator()),
             failure: (message) => Center(
+              key: const ValueKey('home_error_state'),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -128,6 +140,7 @@ class HomePage extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodySmall),
                   const SizedBox(height: 16),
                   FilledButton(
+                    key: const ValueKey('home_retry_button'),
                     onPressed: () =>
                         context.read<HomeBloc>().add(const LoadTrips()),
                     child: const Text('Retry'),
@@ -140,6 +153,7 @@ class HomePage extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        key: const ValueKey('home_create_trip_fab'),
         onPressed: () => context.push(RouteConstants.createTrip),
         tooltip: 'New Trip',
         child: const Icon(Icons.add),
@@ -157,6 +171,7 @@ class _TripListView extends StatelessWidget {
   Widget build(BuildContext context) {
     if (trips.isEmpty) {
       return Center(
+        key: const ValueKey('home_empty_state'),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -179,15 +194,16 @@ class _TripListView extends StatelessWidget {
         trips.where((t) => t.status == 'ARCHIVED').toList();
 
     return ListView(
+      key: const ValueKey('home_trips_list'),
       padding: const EdgeInsets.all(16),
       children: [
-        ...activeTrips.map((trip) => _TripCard(trip: trip)),
+        ...activeTrips.map((trip) => _TripCard(key: ValueKey('trip_card_${trip.id}'), trip: trip)),
         if (archivedTrips.isNotEmpty)
           ExpansionTile(
             title: const Text('Archived'),
             initiallyExpanded: false,
             children: archivedTrips
-                .map((trip) => _TripCard(trip: trip, isArchived: true))
+                .map((trip) => _TripCard(key: ValueKey('trip_card_${trip.id}'), trip: trip, isArchived: true))
                 .toList(),
           ),
       ],
@@ -199,7 +215,7 @@ class _TripCard extends StatelessWidget {
   final TripModel trip;
   final bool isArchived;
 
-  const _TripCard({required this.trip, this.isArchived = false});
+  const _TripCard({super.key, required this.trip, this.isArchived = false});
 
   @override
   Widget build(BuildContext context) {

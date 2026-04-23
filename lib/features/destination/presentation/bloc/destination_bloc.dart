@@ -95,45 +95,56 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
     UpdateVoteConfig event,
     Emitter<DestinationState> emit,
   ) async {
-    try {
+    await _runWithRecovery(event.tripId, emit, () async {
       final config =
           await _repository.updateVoteConfig(event.tripId, event.mode);
       final snapshot = _currentLoaded();
-      if (snapshot == null || snapshot.mode != config.mode) {
+      // Only emit if we already have a loaded list — do NOT flash an empty
+      // `loaded(destinations: const [])` before the destinations refresh.
+      if (snapshot != null && snapshot.mode != config.mode) {
         emit(DestinationState.loaded(
-          destinations: snapshot?.destinations ?? const [],
+          destinations: snapshot.destinations,
           mode: config.mode,
-          myDeviceId: snapshot?.myDeviceId,
+          myDeviceId: snapshot.myDeviceId,
         ));
       }
-      // Server may have nulled ranks on transition — refresh aggregates.
-      add(LoadDestinations(event.tripId));
-    } catch (e) {
-      emit(DestinationState.error(message: _friendlyMessage(e)));
-    }
+    });
   }
 
   Future<void> _onCastVote(
     CastVote event,
     Emitter<DestinationState> emit,
   ) async {
-    try {
+    await _runWithRecovery(event.tripId, emit, () async {
       await _repository.castVote(event.destinationId, rank: event.rank);
-      add(LoadDestinations(event.tripId));
-    } catch (e) {
-      emit(DestinationState.error(message: _friendlyMessage(e)));
-    }
+    });
   }
 
   Future<void> _onRetractVote(
     RetractVote event,
     Emitter<DestinationState> emit,
   ) async {
-    try {
+    await _runWithRecovery(event.tripId, emit, () async {
       await _repository.retractVote(event.destinationId);
-      add(LoadDestinations(event.tripId));
+    });
+  }
+
+  /// Runs [body], then refreshes destinations to pick up server-side changes.
+  /// On failure, emits an error and — if a loaded list existed — triggers a
+  /// reload so the UI recovers to the latest server state instead of staying
+  /// on an error screen after a transient 4xx/5xx.
+  Future<void> _runWithRecovery(String tripId,
+      Emitter<DestinationState> emit,
+      Future<void> Function() body,) async {
+    final hadSnapshot = _currentLoaded() != null;
+    try {
+      await body();
+      add(LoadDestinations(tripId));
     } catch (e) {
       emit(DestinationState.error(message: _friendlyMessage(e)));
+      if (hadSnapshot) {
+        add(LoadDestinations(tripId));
+      }
     }
   }
 

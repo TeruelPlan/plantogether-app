@@ -107,6 +107,7 @@ class _TripEditSheetState extends State<TripEditSheet> {
                 ),
                 const SizedBox(height: 24),
                 TextFormField(
+                  key: const ValueKey('trip_edit_title_field'),
                   controller: _titleController,
                   decoration: const InputDecoration(
                     labelText: 'Title',
@@ -121,6 +122,7 @@ class _TripEditSheetState extends State<TripEditSheet> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  key: const ValueKey('trip_edit_description_field'),
                   controller: _descriptionController,
                   decoration: const InputDecoration(
                     labelText: 'Description',
@@ -130,6 +132,7 @@ class _TripEditSheetState extends State<TripEditSheet> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  key: const ValueKey('trip_edit_currency_field'),
                   controller: _currencyController,
                   decoration: const InputDecoration(
                     labelText: 'Reference currency',
@@ -149,6 +152,7 @@ class _TripEditSheetState extends State<TripEditSheet> {
                 ),
                 const SizedBox(height: 24),
                 FilledButton(
+                  key: const ValueKey('trip_edit_save_button'),
                   onPressed: _saving ? null : _onSave,
                   child: _saving
                       ? const SizedBox(

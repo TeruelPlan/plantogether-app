@@ -54,6 +54,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextFormField(
+                  key: const ValueKey('create_trip_name_field'),
                   controller: _titleController,
                   decoration: const InputDecoration(
                     labelText: 'Trip name',
@@ -68,6 +69,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  key: const ValueKey('create_trip_description_field'),
                   controller: _descriptionController,
                   decoration: const InputDecoration(
                     labelText: 'Description (optional)',
@@ -76,6 +78,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
+                  key: const ValueKey('create_trip_currency_dropdown'),
                   initialValue: _selectedCurrency,
                   decoration: const InputDecoration(
                     labelText: 'Currency (optional)',
@@ -95,6 +98,7 @@ class _CreateTripPageState extends State<CreateTripPage> {
                       orElse: () => false,
                     );
                     return FilledButton(
+                      key: const ValueKey('create_trip_submit_button'),
                       onPressed: isLoading ? null : _onSubmit,
                       child: isLoading
                           ? const SizedBox(

@@ -36,9 +36,11 @@ class _DatesTabState extends State<DatesTab> {
             loaded: (polls) => polls.isEmpty
                 ? _buildEmpty(context)
                 : ListView.builder(
+                    key: const ValueKey('polls_list'),
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: polls.length,
                     itemBuilder: (_, i) => PollCard(
+                      key: ValueKey('poll_card_${polls[i].id}'),
                       poll: polls[i],
                       onTap: () => context.push(
                           '/trips/${widget.tripId}/polls/${polls[i].id}'),
@@ -48,6 +50,7 @@ class _DatesTabState extends State<DatesTab> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        key: const ValueKey('poll_create_fab'),
         onPressed: () => CreatePollSheet.show(context, widget.tripId),
         tooltip: 'Create poll',
         child: const Icon(Icons.add),
@@ -66,6 +69,7 @@ class _DatesTabState extends State<DatesTab> {
           Text(message, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 16),
           FilledButton(
+            key: const ValueKey('polls_retry_button'),
             onPressed: () =>
                 context.read<PollBloc>().add(LoadPolls(widget.tripId)),
             child: const Text('Retry'),
@@ -77,6 +81,7 @@ class _DatesTabState extends State<DatesTab> {
 
   Widget _buildEmpty(BuildContext context) {
     return Center(
+      key: const ValueKey('polls_empty_state'),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

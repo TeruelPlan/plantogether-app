@@ -29,6 +29,7 @@ class OfflineSyncBanner extends StatelessWidget {
               ),
               if (onDismissed != null)
                 IconButton(
+                  key: const ValueKey('offline_sync_dismiss_button'),
                   icon: Icon(Icons.close, color: colorScheme.onSecondaryContainer),
                   onPressed: onDismissed,
                   tooltip: 'Dismiss',

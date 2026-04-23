@@ -119,6 +119,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
           Text(message, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 16),
           FilledButton(
+            key: const ValueKey('poll_detail_retry_button'),
             onPressed: () => context
                 .read<PollDetailBloc>()
                 .add(LoadPollDetail(widget.pollId)),
@@ -208,10 +209,12 @@ class _PollDetailPageState extends State<PollDetailPage> {
             const Text('All members will be notified. This cannot be undone.'),
         actions: [
           TextButton(
+            key: const ValueKey('poll_lock_cancel_button'),
             onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Cancel'),
           ),
           FilledButton(
+            key: const ValueKey('poll_lock_confirm_button'),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Lock'),
           ),

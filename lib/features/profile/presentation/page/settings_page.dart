@@ -68,6 +68,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TextField(
+                    key: const ValueKey('settings_display_name_field'),
                     controller: _nameController,
                     maxLength: 50,
                     decoration: InputDecoration(
@@ -81,6 +82,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
+                      key: const ValueKey('settings_save_button'),
                       onPressed: (isSaving || _nameController.text.trim().isEmpty)
                           ? null
                           : () {

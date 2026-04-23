@@ -38,7 +38,6 @@ class _ProposeDestinationSheetState extends State<ProposeDestinationSheet> {
   final _urlController = TextEditingController();
   String? _currency;
   bool _submitted = false;
-  bool _loadingSeenAfterSubmit = false;
 
   @override
   void dispose() {
@@ -86,9 +85,7 @@ class _ProposeDestinationSheetState extends State<ProposeDestinationSheet> {
       listener: (context, state) {
         if (!_submitted) return;
         state.maybeWhen(
-          loading: () => _loadingSeenAfterSubmit = true,
-          loaded: (_, mode, myDeviceId) {
-            if (!_loadingSeenAfterSubmit) return;
+          loaded: (_, __, ___) {
             if (!mounted) return;
             Navigator.of(context).pop();
           },
@@ -96,10 +93,7 @@ class _ProposeDestinationSheetState extends State<ProposeDestinationSheet> {
             if (!mounted) return;
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(message)));
-            setState(() {
-              _submitted = false;
-              _loadingSeenAfterSubmit = false;
-            });
+            setState(() => _submitted = false);
           },
           orElse: () {},
         );
@@ -119,6 +113,7 @@ class _ProposeDestinationSheetState extends State<ProposeDestinationSheet> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  key: const ValueKey('propose_name_field'),
                   controller: _nameController,
                   decoration: const InputDecoration(
                     labelText: 'Name *',
@@ -133,6 +128,7 @@ class _ProposeDestinationSheetState extends State<ProposeDestinationSheet> {
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
+                  key: const ValueKey('propose_description_field'),
                   controller: _descriptionController,
                   maxLines: 3,
                   decoration: const InputDecoration(
@@ -145,6 +141,7 @@ class _ProposeDestinationSheetState extends State<ProposeDestinationSheet> {
                   children: [
                     Expanded(
                       child: TextFormField(
+                        key: const ValueKey('propose_budget_field'),
                         controller: _budgetController,
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
@@ -165,6 +162,7 @@ class _ProposeDestinationSheetState extends State<ProposeDestinationSheet> {
                     SizedBox(
                       width: 120,
                       child: DropdownButtonFormField<String>(
+                        key: const ValueKey('propose_currency_dropdown'),
                         initialValue: _currency,
                         decoration: const InputDecoration(
                           labelText: 'Currency',
@@ -185,6 +183,7 @@ class _ProposeDestinationSheetState extends State<ProposeDestinationSheet> {
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
+                  key: const ValueKey('propose_url_field'),
                   controller: _urlController,
                   keyboardType: TextInputType.url,
                   decoration: const InputDecoration(
@@ -202,6 +201,7 @@ class _ProposeDestinationSheetState extends State<ProposeDestinationSheet> {
                 ),
                 const SizedBox(height: 16),
                 FilledButton(
+                  key: const ValueKey('propose_submit_button'),
                   onPressed: _submitted ? null : _submit,
                   child: Text(_submitted ? 'Proposing…' : 'Propose'),
                 ),

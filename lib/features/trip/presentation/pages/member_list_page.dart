@@ -61,6 +61,7 @@ class _MemberListPageState extends State<MemberListPage> {
                       style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
                   FilledButton(
+                    key: const ValueKey('member_list_retry_button'),
                     onPressed: () => context
                         .read<MemberListBloc>()
                         .add(LoadMembers(widget.tripId)),
@@ -77,12 +78,14 @@ class _MemberListPageState extends State<MemberListPage> {
                 title: Text('Members (${members.length})'),
               ),
               body: ListView.builder(
+                key: const ValueKey('member_list'),
                 itemCount: members.length,
                 itemBuilder: (context, index) {
                   final member = members[index];
                   final isMemberOrganizer = member.role == 'ORGANIZER';
 
                   return ListTile(
+                    key: ValueKey('member_card_${member.memberId}'),
                     leading: CircleAvatar(
                       backgroundColor:
                           MemberAvatarStack.avatarColor(member.memberId),
@@ -112,6 +115,7 @@ class _MemberListPageState extends State<MemberListPage> {
                     ),
                     trailing: (isOrganizer && !member.isMe && !isMemberOrganizer)
                         ? IconButton(
+                            key: ValueKey('member_remove_button_${member.memberId}'),
                             icon: const Icon(Icons.person_remove_outlined),
                             tooltip: 'Remove member',
                             onPressed: () => RemoveMemberDialog.show(

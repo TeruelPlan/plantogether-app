@@ -119,6 +119,7 @@ class _CreatePollSheetState extends State<CreatePollSheet> {
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 16),
                 TextFormField(
+                  key: const ValueKey('create_poll_title_field'),
                   controller: _titleController,
                   decoration: const InputDecoration(
                     labelText: 'Title',
@@ -135,6 +136,7 @@ class _CreatePollSheetState extends State<CreatePollSheet> {
                         '${_dateFmt.format(e.value.startDate)} → ${_dateFmt.format(e.value.endDate)}',
                       ),
                       trailing: IconButton(
+                        key: ValueKey('create_poll_remove_slot_${e.key}'),
                         icon: const Icon(Icons.close),
                         onPressed: () => _removeSlot(e.key),
                       ),
@@ -151,12 +153,14 @@ class _CreatePollSheetState extends State<CreatePollSheet> {
                   ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
+                  key: const ValueKey('create_poll_add_slot_button'),
                   onPressed: _addSlot,
                   icon: const Icon(Icons.add),
                   label: const Text('Add date slot'),
                 ),
                 const SizedBox(height: 16),
                 FilledButton(
+                  key: const ValueKey('create_poll_submit_button'),
                   onPressed: isLoading ? null : _submit,
                   child: isLoading
                       ? const SizedBox(

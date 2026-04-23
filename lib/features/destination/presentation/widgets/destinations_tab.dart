@@ -52,21 +52,10 @@ class _DestinationsTabState extends State<DestinationsTab> {
     }
   }
 
-  int? _myRankFor(DestinationModel destination, String? myDeviceId) {
-    // Rank from the aggregate is not available per-device; this is a
-    // placeholder until per-voter enrichment arrives. Keep null for now.
-    // TODO: populate from enriched aggregate -> 4.3
-    return null;
-  }
+  int? _myRankFor(DestinationModel destination) => destination.votes.myRank;
 
-  bool _isMySimpleChoice(DestinationModel destination, String? myDeviceId) {
-    // Same placeholder: per-device state unknown until enrichment.
-    return false;
-  }
-
-  bool _isMyApproval(DestinationModel destination, String? myDeviceId) {
-    return false;
-  }
+  bool _isMyVoteCast(DestinationModel destination) =>
+      destination.votes.myVoteCast;
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +95,7 @@ class _DestinationsTabState extends State<DestinationsTab> {
                   child: destinations.isEmpty
                       ? _buildEmpty(context)
                       : ListView.builder(
+                          key: const ValueKey('destinations_list'),
                           padding:
                               const EdgeInsets.symmetric(vertical: 8),
                           itemCount: destinations.length,
@@ -113,17 +103,16 @@ class _DestinationsTabState extends State<DestinationsTab> {
                             final d = destinations[i];
                             final effectiveMode = mode ?? VoteMode.simple;
                             return DestinationProposalCard(
+                              key: ValueKey('destination_card_${d.id}'),
                               destination: d,
                               voteInput: VoteInputWidget(
                                 tripId: widget.tripId,
                                 destination: d,
                                 mode: effectiveMode,
                                 totalDestinationCount: destinations.length,
-                                myRankForThisDestination:
-                                    _myRankFor(d, myDeviceId),
-                                isMySimpleChoice:
-                                    _isMySimpleChoice(d, myDeviceId),
-                                isMyApproval: _isMyApproval(d, myDeviceId),
+                                myRankForThisDestination: _myRankFor(d),
+                                isMySimpleChoice: _isMyVoteCast(d),
+                                isMyApproval: _isMyVoteCast(d),
                               ),
                             );
                           },
@@ -135,6 +124,7 @@ class _DestinationsTabState extends State<DestinationsTab> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
+        key: const ValueKey('propose_destination_fab'),
         onPressed: _openSheet,
         tooltip: 'Propose destination',
         icon: const Icon(Icons.add_location_alt),
@@ -171,6 +161,7 @@ class _DestinationsTabState extends State<DestinationsTab> {
   Widget _buildEmpty(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
+      key: const ValueKey('destinations_empty_state'),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

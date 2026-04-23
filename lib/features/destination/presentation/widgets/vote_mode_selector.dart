@@ -22,27 +22,43 @@ class VoteModeSelector extends StatelessWidget {
     required this.destinations,
   });
 
-  bool get _hasExistingVotes =>
-      destinations.any((d) => d.votes.totalVotes > 0);
+  bool get _hasAnyVotes => destinations.any((d) => d.votes.totalVotes > 0);
 
   Future<void> _handleSelection(
     BuildContext context,
     VoteMode newMode,
   ) async {
-    if (newMode == currentMode) return;
-    // Confirm when switching TO SIMPLE or APPROVAL from RANKING with existing votes.
-    final needsConfirmation = currentMode == VoteMode.ranking &&
-        (newMode == VoteMode.simple || newMode == VoteMode.approval) &&
-        _hasExistingVotes;
-    if (needsConfirmation) {
+    if (newMode == currentMode) return;/ Confirmation cases:
+    //   - RANKING -> SIMPLE / APPROVAL with existing ranked votes: ranks will be cleared.
+    //   - APPROVAL -> SIMPLE with existing approvals: members may hold several approvals
+    //     that collapse into an ambiguous "one vote per trip" constraint.
+    //   - SIMPLE / APPROVAL -> RANKING with existing votes: members must re-rank explicitly.
+    String? warning;
+    if (currentMode == VoteMode.ranking &&
+        ((newMode == VoteMode.simple || newMode == VoteMode.approval) &&
+        _hasAnyVotes) {
+      warning = 'Switching from Ranking will clear existing rank values. '
+          'Voters will remain counted but their ranks will be reset.';
+    } else if (currentMode == VoteMode.approval &&
+        newMode == VoteMode.simple &&
+        _hasAnyVotes) {
+      warning = 'Switching from Approval to Simple keeps existing approvals '
+          'but voters may now hold more than one pick in Simple mode until '
+          'they re-vote.';
+    } else if ((currentMode == VoteMode.simple ||
+        currentMode == VoteMode.approval) &&
+        newMode == VoteMode.ranking &&
+        _hasAnyVotes) {
+      warning = 'Switching to Ranking preserves existing votes but voters '
+          'will need to explicitly choose a rank for each destination.';
+    }
+
+    if (warning != null) {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Switch vote mode?'),
-          content: const Text(
-            'Switching from Ranking will clear existing rank values. '
-            'Voters will remain counted but their ranks will be reset.',
-          ),
+          content: Text(warning),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
@@ -92,6 +108,7 @@ class VoteModeSelector extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(12),
       child: SegmentedButton<VoteMode>(
+        key: const ValueKey('vote_mode_selector'),
         segments: const [
           ButtonSegment(
             value: VoteMode.simple,

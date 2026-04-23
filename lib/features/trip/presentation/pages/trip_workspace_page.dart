@@ -73,6 +73,7 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                   Text(message, style: Theme.of(context).textTheme.bodySmall),
                   const SizedBox(height: 16),
                   FilledButton(
+                    key: const ValueKey('trip_workspace_retry_button'),
                     onPressed: () => context
                         .read<TripDetailBloc>()
                         .add(LoadTripDetail(tripId: widget.tripId)),
@@ -94,12 +95,14 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                   leading: context.canPop()
                       ? null
                       : IconButton(
+                          key: const ValueKey('trip_workspace_back_button'),
                           icon: const Icon(Icons.arrow_back),
                           onPressed: () => context.go('/home'),
                         ),
                   actions: [
                     if (isOrganizer && !isArchived)
                       IconButton(
+                        key: const ValueKey('trip_workspace_invite_button'),
                         icon: const Icon(Icons.person_add),
                         tooltip: 'Invite members',
                         onPressed: () => context.push(
@@ -109,12 +112,14 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                       ),
                     if (isOrganizer && !isArchived)
                       IconButton(
+                        key: const ValueKey('trip_workspace_edit_button'),
                         icon: const Icon(Icons.edit),
                         tooltip: 'Edit trip',
                         onPressed: () => TripEditSheet.show(context, trip),
                       ),
                     if (isOrganizer && !isArchived)
                       PopupMenuButton<String>(
+                        key: const ValueKey('trip_workspace_menu_button'),
                         onSelected: (value) {
                           if (value == 'archive') {
                             ArchiveConfirmDialog.show(context, trip.id);

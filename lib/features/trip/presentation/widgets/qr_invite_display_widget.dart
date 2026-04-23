@@ -38,6 +38,7 @@ class QRInviteDisplayWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             IconButton(
+              key: const ValueKey('invite_copy_link_button'),
               icon: const Icon(Icons.copy),
               tooltip: 'Copy link',
               onPressed: () async {
@@ -51,6 +52,7 @@ class QRInviteDisplayWidget extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             IconButton(
+              key: const ValueKey('invite_share_button'),
               icon: const Icon(Icons.share),
               tooltip: 'Share',
               onPressed: () {

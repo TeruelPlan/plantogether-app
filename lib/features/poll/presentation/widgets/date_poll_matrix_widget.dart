@@ -350,6 +350,7 @@ class _SlotRow extends StatelessWidget {
                   'Lock poll for ${DatePollMatrixWidget.semanticSlotLabel(slot)}',
               button: true,
               child: IconButton(
+                key: ValueKey('poll_lock_button_${slot.id}'),
                 icon: const Icon(Icons.lock_outline, size: 18),
                 tooltip: 'Lock dates',
                 padding: const EdgeInsets.all(4),
@@ -388,6 +389,7 @@ class _OwnVoteCell extends StatelessWidget {
       label:
           'Your vote: ${currentVote?.name.toUpperCase() ?? 'none'} for $slotLabel',
       child: SegmentedButton<VoteStatus>(
+        key: ValueKey('poll_vote_segmented_${slot.id}'),
         segments: const [
           ButtonSegment(value: VoteStatus.yes, icon: Icon(Icons.check)),
           ButtonSegment(value: VoteStatus.maybe, icon: Icon(Icons.help_outline)),

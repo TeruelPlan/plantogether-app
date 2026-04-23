@@ -55,6 +55,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 ),
                 const SizedBox(height: 32),
                 TextFormField(
+                  key: const ValueKey('onboarding_name_field'),
                   controller: _ctrl,
                   decoration: InputDecoration(
                     labelText: 'Display name',
@@ -75,6 +76,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 SizedBox(
                   height: 48,
                   child: ElevatedButton(
+                    key: const ValueKey('onboarding_continue_button'),
                     onPressed: _ctrl.text.trim().isEmpty || _saving
                         ? null
                         : _submit,

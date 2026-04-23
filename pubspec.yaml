@@ -49,6 +49,9 @@ dependencies:
   uuid: ^4.4.0
   bloc_concurrency: ^0.3.0
 
+  # Integration test driver (Marionette MCP)
+  marionette_flutter: ^0.5.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
