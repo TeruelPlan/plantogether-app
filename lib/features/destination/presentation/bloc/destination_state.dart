@@ -13,6 +13,7 @@ sealed class DestinationState with _$DestinationState {
     required List<DestinationModel> destinations,
     VoteMode? mode,
     String? myDeviceId,
+    String? connectionBanner,
   }) = _Loaded;
   const factory DestinationState.error({required String message}) = _Error;
 }

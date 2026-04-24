@@ -125,10 +125,10 @@ class AppRouter {
                   create: (ctx) => PollBloc(ctx.read<PollRepository>()),
                 ),
                 BlocProvider(
-                  create: (ctx) =>
-                      DestinationBloc(
+                  create: (ctx) => DestinationBloc(
                     ctx.read<DestinationRepository>(),
                     deviceIdService: ctx.read<DeviceIdService>(),
+                    stompClientManager: ctx.read<StompClientManager>(),
                   ),
                 ),
               ],

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/network/stomp_client_manager.dart';
 import '../../domain/model/vote_config_model.dart';
 import '../../domain/repository/destination_repository.dart';
 
@@ -71,4 +72,31 @@ class RetractVote extends DestinationEvent {
 
   @override
   List<Object?> get props => [tripId, destinationId];
+}
+
+class TripUpdateReceived extends DestinationEvent {
+  final Map<String, dynamic> payload;
+
+  const TripUpdateReceived(this.payload);
+
+  @override
+  List<Object?> get props => [payload];
+}
+
+class ConnectionStateChanged extends DestinationEvent {
+  final StompConnectionState connectionState;
+
+  const ConnectionStateChanged(this.connectionState);
+
+  @override
+  List<Object?> get props => [connectionState];
+}
+
+class DebouncedReload extends DestinationEvent {
+  final String tripId;
+
+  const DebouncedReload(this.tripId);
+
+  @override
+  List<Object?> get props => [tripId];
 }

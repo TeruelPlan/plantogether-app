@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,36 +10,11 @@ import 'package:plantogether_app/features/poll/presentation/bloc/poll_detail_blo
 import 'package:plantogether_app/features/poll/presentation/bloc/poll_detail_event.dart';
 import 'package:plantogether_app/features/poll/presentation/bloc/poll_detail_state.dart';
 
+import '../../../helpers/fake_stomp_client_manager.dart';
+
 class MockPollRepository extends Mock implements PollRepository {}
 
 class MockDeviceIdService extends Mock implements DeviceIdService {}
-
-class FakeStompClientManager implements StompClientManager {
-  final StreamController<StompConnectionState> stateController =
-      StreamController<StompConnectionState>.broadcast();
-  void Function(Map<String, dynamic>)? lastCallback;
-
-  @override
-  Future<TripStompSubscription> connect({
-    required String endpointPath,
-    required String tripId,
-    required void Function(Map<String, dynamic>) onTripUpdate,
-  }) async {
-    lastCallback = onTripUpdate;
-    return _FakeSubscription(stateController.stream);
-  }
-}
-
-class _FakeSubscription implements TripStompSubscription {
-  final Stream<StompConnectionState> _stream;
-  _FakeSubscription(this._stream);
-
-  @override
-  Stream<StompConnectionState> get connectionState => _stream;
-
-  @override
-  void disconnect() {}
-}
 
 void main() {
   late MockPollRepository mockRepository;

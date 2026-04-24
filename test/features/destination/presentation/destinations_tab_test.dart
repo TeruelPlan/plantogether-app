@@ -18,6 +18,8 @@ void main() {
 
   setUp(() {
     mockRepository = MockDestinationRepository();
+    when(() => mockRepository.list(any()))
+        .thenAnswer((_) async => const []);
     when(() => mockRepository.getVoteConfig(any())).thenAnswer(
       (_) async => VoteConfigModel(
         tripId: 'trip-1',
@@ -85,5 +87,37 @@ void main() {
 
     completer.complete(const []);
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('shows Leading badge on the highest-voted card',
+      (tester) async {
+    final winner = DestinationModel(
+      id: 'w',
+      tripId: tripId,
+      name: 'Winner',
+      proposedByDeviceId: 'd1',
+      createdAt: DateTime.utc(2026, 4, 1),
+      updatedAt: DateTime.utc(2026, 4, 1),
+      votes: const DestinationVotesModel(totalVotes: 3),
+    );
+    final loser = DestinationModel(
+      id: 'l',
+      tripId: tripId,
+      name: 'Loser',
+      proposedByDeviceId: 'd1',
+      createdAt: DateTime.utc(2026, 4, 1),
+      updatedAt: DateTime.utc(2026, 4, 1),
+      votes: const DestinationVotesModel(totalVotes: 1),
+    );
+    when(() => mockRepository.list(tripId))
+        .thenAnswer((_) async => [winner, loser]);
+
+    await tester.pumpWidget(buildWidget());
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('destination_leading_badge_w')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('destination_leading_badge_l')),
+        findsNothing);
   });
 }
