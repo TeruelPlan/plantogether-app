@@ -8,10 +8,14 @@ part 'destination_dto.g.dart';
 class DestinationVotesDto {
   final int totalVotes;
   final Map<String, int>? rankVotes;
+  final bool? myVoteCast;
+  final int? myRank;
 
   const DestinationVotesDto({
     this.totalVotes = 0,
     this.rankVotes,
+    this.myVoteCast,
+    this.myRank,
   });
 
   factory DestinationVotesDto.fromJson(Map<String, dynamic> json) =>
@@ -22,7 +26,9 @@ class DestinationVotesDto {
   DestinationVotesModel toDomain() => DestinationVotesModel(
         totalVotes: totalVotes,
         rankVotes: rankVotes ?? const {},
-      );
+    myVoteCast: myVoteCast ?? false,
+    myRank: myRank,
+  );
 }
 
 @JsonSerializable()

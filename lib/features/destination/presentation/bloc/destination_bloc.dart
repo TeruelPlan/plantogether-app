@@ -2,26 +2,51 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/security/device_id_service.dart';
+import '../../domain/model/destination_model.dart';
+import '../../domain/model/vote_config_model.dart';
 import '../../domain/repository/destination_repository.dart';
 import 'destination_event.dart';
 import 'destination_state.dart';
 
 class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
   final DestinationRepository _repository;
+  final DeviceIdService? _deviceIdService;
 
-  DestinationBloc(this._repository) : super(const DestinationState.initial()) {
+  VoteMode? _pendingMode;
+
+  DestinationBloc(this._repository, {DeviceIdService? deviceIdService})
+      : _deviceIdService = deviceIdService,
+        super(const DestinationState.initial()) {
     on<LoadDestinations>(_onLoad, transformer: droppable());
     on<ProposeDestination>(_onPropose, transformer: droppable());
+    on<LoadVoteConfig>(_onLoadVoteConfig, transformer: droppable());
+    on<UpdateVoteConfig>(_onUpdateVoteConfig, transformer: droppable());
+    // sequential() — rapid successive taps must be processed in order.
+    on<CastVote>(_onCastVote, transformer: sequential());
+    on<RetractVote>(_onRetractVote, transformer: sequential());
   }
 
   Future<void> _onLoad(
     LoadDestinations event,
     Emitter<DestinationState> emit,
   ) async {
-    emit(const DestinationState.loading());
+    final snapshot = _currentLoaded();
+    final preservedMode = snapshot?.mode ?? _pendingMode;
+    final preservedMyDeviceId = snapshot?.myDeviceId;
+
+    if (snapshot == null) {
+      emit(const DestinationState.loading());
+    }
     try {
       final destinations = await _repository.list(event.tripId);
-      emit(DestinationState.loaded(destinations: destinations));
+      final myDeviceId = preservedMyDeviceId ??
+          await _deviceIdService?.getOrCreateDeviceId();
+      emit(DestinationState.loaded(
+        destinations: destinations,
+        mode: preservedMode ?? _pendingMode,
+        myDeviceId: myDeviceId,
+      ));
     } catch (e) {
       emit(DestinationState.error(message: _friendlyMessage(e)));
     }
@@ -39,6 +64,100 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
     }
   }
 
+  Future<void> _onLoadVoteConfig(
+    LoadVoteConfig event,
+    Emitter<DestinationState> emit,
+  ) async {
+    try {
+      final config = await _repository.getVoteConfig(event.tripId);
+      _pendingMode = config.mode;
+      final snapshot = _currentLoaded();
+      if (snapshot != null && snapshot.mode != config.mode) {
+        emit(DestinationState.loaded(
+          destinations: snapshot.destinations,
+          mode: config.mode,
+          myDeviceId: snapshot.myDeviceId,
+        ));
+      }
+      // else: destinations still loading. The mode will be applied when
+      // LoadDestinations completes via `_pendingMode`.
+    } catch (e) {
+      // Non-fatal: server falls back to SIMPLE. Do not overwrite a valid
+      // loaded destinations list with an error state.
+      final snapshot = _currentLoaded();
+      if (snapshot == null) {
+        emit(DestinationState.error(message: _friendlyMessage(e)));
+      }
+    }
+  }
+
+  Future<void> _onUpdateVoteConfig(
+    UpdateVoteConfig event,
+    Emitter<DestinationState> emit,
+  ) async {
+    await _runWithRecovery(event.tripId, emit, () async {
+      final config =
+          await _repository.updateVoteConfig(event.tripId, event.mode);
+      final snapshot = _currentLoaded();
+      // Only emit if we already have a loaded list — do NOT flash an empty
+      // `loaded(destinations: const [])` before the destinations refresh.
+      if (snapshot != null && snapshot.mode != config.mode) {
+        emit(DestinationState.loaded(
+          destinations: snapshot.destinations,
+          mode: config.mode,
+          myDeviceId: snapshot.myDeviceId,
+        ));
+      }
+    });
+  }
+
+  Future<void> _onCastVote(
+    CastVote event,
+    Emitter<DestinationState> emit,
+  ) async {
+    await _runWithRecovery(event.tripId, emit, () async {
+      await _repository.castVote(event.destinationId, rank: event.rank);
+    });
+  }
+
+  Future<void> _onRetractVote(
+    RetractVote event,
+    Emitter<DestinationState> emit,
+  ) async {
+    await _runWithRecovery(event.tripId, emit, () async {
+      await _repository.retractVote(event.destinationId);
+    });
+  }
+
+  /// Runs [body], then refreshes destinations to pick up server-side changes.
+  /// On failure, emits an error and — if a loaded list existed — triggers a
+  /// reload so the UI recovers to the latest server state instead of staying
+  /// on an error screen after a transient 4xx/5xx.
+  Future<void> _runWithRecovery(String tripId,
+      Emitter<DestinationState> emit,
+      Future<void> Function() body,) async {
+    final hadSnapshot = _currentLoaded() != null;
+    try {
+      await body();
+      add(LoadDestinations(tripId));
+    } catch (e) {
+      emit(DestinationState.error(message: _friendlyMessage(e)));
+      if (hadSnapshot) {
+        add(LoadDestinations(tripId));
+      }
+    }
+  }
+
+  _LoadedSnapshot? _currentLoaded() {
+    return state.whenOrNull(
+      loaded: (destinations, mode, myDeviceId) => _LoadedSnapshot(
+        destinations: destinations,
+        mode: mode,
+        myDeviceId: myDeviceId,
+      ),
+    );
+  }
+
   String _friendlyMessage(Object error) {
     if (error is DioException) {
       final status = error.response?.statusCode;
@@ -51,4 +170,16 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
     }
     return 'Something went wrong. Please try again.';
   }
+}
+
+class _LoadedSnapshot {
+  final List<DestinationModel> destinations;
+  final VoteMode? mode;
+  final String? myDeviceId;
+
+  const _LoadedSnapshot({
+    required this.destinations,
+    this.mode,
+    this.myDeviceId,
+  });
 }

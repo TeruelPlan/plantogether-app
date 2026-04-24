@@ -5,11 +5,13 @@ import '../../domain/model/destination_model.dart';
 class DestinationProposalCard extends StatelessWidget {
   final DestinationModel destination;
   final VoidCallback? onTap;
+  final Widget? voteInput;
 
   const DestinationProposalCard({
     super.key,
     required this.destination,
     this.onTap,
+    this.voteInput,
   });
 
   @override
@@ -30,60 +32,71 @@ class DestinationProposalCard extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.image_outlined,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      destination.name,
-                      style: theme.textTheme.titleMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    if (destination.description != null &&
-                        destination.description!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        destination.description!,
-                        style: theme.textTheme.bodySmall,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    if (destination.externalUrl != null &&
-                        destination.externalUrl!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        destination.externalUrl!,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.primary,
+                    child: Icon(
+                      Icons.image_outlined,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          destination.name,
+                          style: theme.textTheme.titleMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                        if (destination.description != null &&
+                            destination.description!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            destination.description!,
+                            style: theme.textTheme.bodySmall,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        if (destination.externalUrl != null &&
+                            destination.externalUrl!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            destination.externalUrl!,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  if (trailing != null) ...[
+                    const SizedBox(width: 8),
+                    trailing,
                   ],
-                ),
+                ],
               ),
-              if (trailing != null) ...[
-                const SizedBox(width: 8),
-                trailing,
+              if (voteInput != null) ...[
+                const SizedBox(height: 8),
+                const Divider(height: 1),
+                const SizedBox(height: 4),
+                voteInput!,
               ],
             ],
           ),

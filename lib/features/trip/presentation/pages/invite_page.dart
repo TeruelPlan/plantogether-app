@@ -44,6 +44,7 @@ class InvitePage extends StatelessWidget {
                           color: Theme.of(context).colorScheme.error)),
                   const SizedBox(height: 16),
                   FilledButton(
+                    key: const ValueKey('invite_retry_button'),
                     onPressed: () => context
                         .read<InviteBloc>()
                         .add(LoadInvitation(tripId: tripId)),

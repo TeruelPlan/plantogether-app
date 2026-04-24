@@ -7,6 +7,8 @@ abstract class DestinationVotesModel with _$DestinationVotesModel {
   const factory DestinationVotesModel({
     @Default(0) int totalVotes,
     @Default({}) Map<String, int> rankVotes,
+    @Default(false) bool myVoteCast,
+    int? myRank,
   }) = _DestinationVotesModel;
 }
 

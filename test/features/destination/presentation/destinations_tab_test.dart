@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:plantogether_app/features/destination/domain/model/destination_model.dart';
+import 'package:plantogether_app/features/destination/domain/model/vote_config_model.dart';
 import 'package:plantogether_app/features/destination/domain/repository/destination_repository.dart';
 import 'package:plantogether_app/features/destination/presentation/bloc/destination_bloc.dart';
 import 'package:plantogether_app/features/destination/presentation/widgets/destination_proposal_card.dart';
@@ -17,6 +18,13 @@ void main() {
 
   setUp(() {
     mockRepository = MockDestinationRepository();
+    when(() => mockRepository.getVoteConfig(any())).thenAnswer(
+      (_) async => VoteConfigModel(
+        tripId: 'trip-1',
+        mode: VoteMode.simple,
+        updatedAt: DateTime.utc(2026, 4, 1),
+      ),
+    );
   });
 
   const tripId = 'trip-1';

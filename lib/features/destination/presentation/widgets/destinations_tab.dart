@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domain/model/destination_model.dart';
+import '../../domain/model/vote_config_model.dart';
 import '../bloc/destination_bloc.dart';
 import '../bloc/destination_event.dart';
 import '../bloc/destination_state.dart';
 import 'destination_proposal_card.dart';
 import 'propose_destination_sheet.dart';
+import 'vote_input_widget.dart';
+import 'vote_mode_selector.dart';
 
 class DestinationsTab extends StatefulWidget {
   final String tripId;
+  final bool isOrganizer;
 
-  const DestinationsTab({super.key, required this.tripId});
+  const DestinationsTab({
+    super.key,
+    required this.tripId,
+    this.isOrganizer = false,
+  });
 
   @override
   State<DestinationsTab> createState() => _DestinationsTabState();
@@ -18,15 +27,17 @@ class DestinationsTab extends StatefulWidget {
 
 class _DestinationsTabState extends State<DestinationsTab> {
   bool _sheetOpen = false;
+  DestinationState? _lastState;
 
   @override
   void initState() {
     super.initState();
-    final state = context.read<DestinationBloc>().state;
-    state.maybeWhen(
-      initial: () => context
-          .read<DestinationBloc>()
-          .add(LoadDestinations(widget.tripId)),
+    final bloc = context.read<DestinationBloc>();
+    bloc.state.maybeWhen(
+      initial: () {
+        bloc.add(LoadDestinations(widget.tripId));
+        bloc.add(LoadVoteConfig(widget.tripId));
+      },
       orElse: () {},
     );
   }
@@ -41,28 +52,79 @@ class _DestinationsTabState extends State<DestinationsTab> {
     }
   }
 
+  int? _myRankFor(DestinationModel destination) => destination.votes.myRank;
+
+  bool _isMyVoteCast(DestinationModel destination) =>
+      destination.votes.myVoteCast;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<DestinationBloc, DestinationState>(
+      body: BlocConsumer<DestinationBloc, DestinationState>(
+        listener: (ctx, state) {
+          // Show a SnackBar on transient errors (e.g. UpdateVoteConfig 403).
+          final prev = _lastState;
+          state.maybeWhen(
+            error: (message) {
+              final wasLoaded = prev != null &&
+                  prev.maybeWhen(loaded: (a, b, c) => true, orElse: () => false);
+              if (wasLoaded) {
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  SnackBar(content: Text(message)),
+                );
+              }
+            },
+            orElse: () {},
+          );
+          _lastState = state;
+        },
         builder: (context, state) {
           return state.when(
             initial: () => const Center(child: CircularProgressIndicator()),
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (message) => _buildError(context, message),
-            loaded: (destinations) => destinations.isEmpty
-                ? _buildEmpty(context)
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: destinations.length,
-                    itemBuilder: (_, i) => DestinationProposalCard(
-                      destination: destinations[i],
-                    ),
-                  ),
+            loaded: (destinations, mode, myDeviceId) => Column(
+              children: [
+                VoteModeSelector(
+                  tripId: widget.tripId,
+                  currentMode: mode,
+                  isOrganizer: widget.isOrganizer,
+                  destinations: destinations,
+                ),
+                Expanded(
+                  child: destinations.isEmpty
+                      ? _buildEmpty(context)
+                      : ListView.builder(
+                          key: const ValueKey('destinations_list'),
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: destinations.length,
+                          itemBuilder: (_, i) {
+                            final d = destinations[i];
+                            final effectiveMode = mode ?? VoteMode.simple;
+                            return DestinationProposalCard(
+                              key: ValueKey('destination_card_${d.id}'),
+                              destination: d,
+                              voteInput: VoteInputWidget(
+                                tripId: widget.tripId,
+                                destination: d,
+                                mode: effectiveMode,
+                                totalDestinationCount: destinations.length,
+                                myRankForThisDestination: _myRankFor(d),
+                                isMySimpleChoice: _isMyVoteCast(d),
+                                isMyApproval: _isMyVoteCast(d),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
+        key: const ValueKey('propose_destination_fab'),
         onPressed: _openSheet,
         tooltip: 'Propose destination',
         icon: const Icon(Icons.add_location_alt),
@@ -84,9 +146,11 @@ class _DestinationsTabState extends State<DestinationsTab> {
           Text(message, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 16),
           FilledButton(
-            onPressed: () => context
-                .read<DestinationBloc>()
-                .add(LoadDestinations(widget.tripId)),
+            onPressed: () {
+              final bloc = context.read<DestinationBloc>();
+              bloc.add(LoadDestinations(widget.tripId));
+              bloc.add(LoadVoteConfig(widget.tripId));
+            },
             child: const Text('Retry'),
           ),
         ],
@@ -97,6 +161,7 @@ class _DestinationsTabState extends State<DestinationsTab> {
   Widget _buildEmpty(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
+      key: const ValueKey('destinations_empty_state'),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -116,3 +181,4 @@ class _DestinationsTabState extends State<DestinationsTab> {
     );
   }
 }
+

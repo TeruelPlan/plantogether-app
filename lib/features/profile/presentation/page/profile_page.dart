@@ -98,6 +98,7 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(height: 32),
           // Display name field
           TextField(
+            key: const ValueKey('profile_display_name_field'),
             controller: _displayNameController,
             decoration: InputDecoration(
               labelText: 'Display Name',
@@ -116,6 +117,7 @@ class _ProfilePageState extends State<ProfilePage> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
+              key: const ValueKey('profile_save_button'),
               onPressed: (isEmpty || isUpdating)
                   ? null
                   : () {

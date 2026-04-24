@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../model/destination_model.dart';
+import '../model/vote_config_model.dart';
 
 class ProposeDestinationInput extends Equatable {
   final String name;
@@ -31,4 +32,12 @@ abstract class DestinationRepository {
     String tripId,
     ProposeDestinationInput input,
   );
+
+  Future<VoteConfigModel> getVoteConfig(String tripId);
+
+  Future<VoteConfigModel> updateVoteConfig(String tripId, VoteMode mode);
+
+  Future<void> castVote(String destinationId, {int? rank});
+
+  Future<void> retractVote(String destinationId);
 }

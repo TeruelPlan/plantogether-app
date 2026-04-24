@@ -64,7 +64,7 @@ void main() {
           (s) => s.when(
             initial: () => '',
             loading: () => '',
-            loaded: (_) => '',
+            loaded: (_, mode, myDeviceId) => '',
             error: (m) => m,
           ),
           'error message',
@@ -112,7 +112,7 @@ void main() {
           (s) => s.when(
             initial: () => '',
             loading: () => '',
-            loaded: (_) => '',
+            loaded: (_, mode, myDeviceId) => '',
             error: (m) => m,
           ),
           'error message',

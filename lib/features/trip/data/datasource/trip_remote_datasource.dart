@@ -30,8 +30,8 @@ class TripRemoteDatasource {
       '/api/v1/trips',
       data: {
         'title': title,
-        if (description != null) 'description': description,
-        if (currency != null) 'currency': currency,
+        'description': ?description,
+        'currency': ?currency,
       },
     );
     return TripDto.fromJson(response.data);
@@ -48,7 +48,7 @@ class TripRemoteDatasource {
       data: {
         'title': title,
         'description': description ?? '',
-        if (currency != null) 'referenceCurrency': currency,
+        'referenceCurrency': ?currency,
       },
     );
     return TripDto.fromJson(response.data);

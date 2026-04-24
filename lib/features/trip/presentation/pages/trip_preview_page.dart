@@ -69,6 +69,7 @@ class TripPreviewPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 48),
                   FilledButton.icon(
+                    key: const ValueKey('trip_preview_join_button'),
                     icon: const Icon(Icons.group_add),
                     label: const Text('Join trip'),
                     onPressed: () => context.read<JoinTripBloc>().add(
@@ -90,6 +91,7 @@ class TripPreviewPage extends StatelessWidget {
                           color: Theme.of(context).colorScheme.error)),
                   const SizedBox(height: 16),
                   FilledButton(
+                    key: const ValueKey('trip_preview_retry_button'),
                     onPressed: () => context.read<JoinTripBloc>().add(
                           LoadPreview(tripId: tripId, token: token),
                         ),

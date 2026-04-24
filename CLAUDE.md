@@ -172,5 +172,47 @@ API_BASE_URL=http://127.0.0.1:8081          # development (direct to trip-servic
 - **Unit:** BLoC tests with `bloc_test`, repository tests with `mocktail` (NOT mockito)
 - **Widget:** `flutter_test` for individual components and forms
 - **Integration:** `integration_test` package for full end-to-end flows on emulator
+- **Runtime driver:** `marionette_flutter` is initialized in `main.dart` (debug-only, skipped under `FLUTTER_TEST`). Drive the running app from AI agents / Marionette MCP via VM service URI.
+
+### ValueKey convention (MANDATORY for interactive widgets)
+
+Every **interactive widget** MUST carry a stable `ValueKey<String>`. This is non-negotiable: Marionette MCP, widget tests, and integration tests rely on keys to locate elements reliably — text matching is brittle (localization, truncation) and coordinate matching is fragile (layout changes). Apply this rule to new code and to any existing widget you edit.
+
+**Required on:**
+- All `TextFormField` / `TextField`
+- All buttons: `ElevatedButton`, `FilledButton`, `TextButton`, `OutlinedButton`, `IconButton`, `FloatingActionButton`
+- All toggles: `Checkbox`, `Switch`, `Radio`, `SegmentedButton`
+- All `DropdownButton` / `DropdownButtonFormField`
+- `ListView` / `GridView` that tests scroll through (e.g. `destinations_list`)
+- Per-item cards in dynamic lists (include the domain id, e.g. `destination_card_${d.id}`)
+- Empty states, error states, loading indicators when they are asserted by tests
+
+**Naming rules:**
+- Format: `snake_case`, feature-prefixed, purpose-suffixed. Examples: `propose_name_field`, `propose_submit_button`, `vote_simple_button`, `vote_mode_selector`, `destinations_empty_state`, `destination_card_<id>`.
+- Use `const ValueKey('...')` except when the key embeds a runtime value (then just `ValueKey('...')`).
+- Keep keys stable across refactors — tests and MCP scripts depend on them.
+
+**Example:**
+
+```dart
+TextFormField(
+  key: const ValueKey('propose_name_field'),
+  controller: _nameController,
+  // ...
+)
+
+FilledButton(
+  key: const ValueKey('propose_submit_button'),
+  onPressed: _submit,
+  child: const Text('Propose'),
+)
+
+DestinationProposalCard(
+  key: ValueKey('destination_card_${d.id}'),
+  destination: d,
+)
+```
+
+**Also: make whole rows tappable.** When a row contains a small control (radio, checkbox) plus a label, wrap the `Row` in an `InkWell` / `GestureDetector` so tapping the label or whitespace also triggers the action. A tiny hit target is unreachable for both users and Marionette text-based taps.
 
 Test files mirror the `lib/` structure under `test/`.
