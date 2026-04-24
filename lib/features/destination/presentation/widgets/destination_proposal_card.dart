@@ -6,17 +6,22 @@ class DestinationProposalCard extends StatelessWidget {
   final DestinationModel destination;
   final VoidCallback? onTap;
   final Widget? voteInput;
+  final bool isLeading;
+  final String? aggregateLabel;
 
   const DestinationProposalCard({
     super.key,
     required this.destination,
     this.onTap,
     this.voteInput,
+    this.isLeading = false,
+    this.aggregateLabel,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final budget = destination.estimatedBudget;
     final currency = destination.currency;
     final trailing = (budget != null && currency != null)
@@ -26,79 +31,129 @@ class DestinationProposalCard extends StatelessWidget {
           )
         : null;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(8),
+    final label = aggregateLabel ?? '';
+    final semanticsLabel =
+        'Destination ${destination.name}${label.isEmpty ? '' : ', $label'}'
+        '${isLeading ? ', leading' : ''}';
+
+    return Semantics(
+      liveRegion: true,
+      container: true,
+      label: semanticsLabel,
+      child: Card(
+        key: isLeading
+            ? ValueKey('destination_card_leading_${destination.id}')
+            : null,
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        color: isLeading
+            ? colorScheme.primaryContainer.withValues(alpha: 0.35)
+            : null,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.image_outlined,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.image_outlined,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          destination.name,
-                          style: theme.textTheme.titleMedium,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (destination.description != null &&
-                            destination.description!.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            destination.description!,
-                            style: theme.textTheme.bodySmall,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  destination.name,
+                                  style: theme.textTheme.titleMedium,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (isLeading) ...[
+                                const SizedBox(width: 6),
+                                Chip(
+                                  key: ValueKey(
+                                      'destination_leading_badge_${destination.id}'),
+                                  visualDensity: VisualDensity.compact,
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  avatar: Icon(
+                                    Icons.emoji_events,
+                                    size: 18,
+                                    color: colorScheme.onPrimaryContainer,
+                                  ),
+                                  label: const Text('Leading'),
+                                  backgroundColor: colorScheme.primaryContainer,
+                                ),
+                              ],
+                            ],
                           ),
-                        ],
-                        if (destination.externalUrl != null &&
-                            destination.externalUrl!.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            destination.externalUrl!,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.primary,
+                          if (destination.description != null &&
+                              destination.description!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              destination.description!,
+                              style: theme.textTheme.bodySmall,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          ],
+                          if (destination.externalUrl != null &&
+                              destination.externalUrl!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              destination.externalUrl!,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.primary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                          if (aggregateLabel != null) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              aggregateLabel!,
+                              key: ValueKey(
+                                  'destination_aggregate_label_${destination.id}'),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                  if (trailing != null) ...[
-                    const SizedBox(width: 8),
-                    trailing,
+                    if (trailing != null) ...[
+                      const SizedBox(width: 8),
+                      trailing,
+                    ],
                   ],
+                ),
+                if (voteInput != null) ...[
+                  const SizedBox(height: 8),
+                  const Divider(height: 1),
+                  const SizedBox(height: 4),
+                  voteInput!,
                 ],
-              ),
-              if (voteInput != null) ...[
-                const SizedBox(height: 8),
-                const Divider(height: 1),
-                const SizedBox(height: 4),
-                voteInput!,
               ],
-            ],
+            ),
           ),
         ),
       ),

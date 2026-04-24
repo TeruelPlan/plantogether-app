@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../shared/widgets/offline_sync_banner.dart';
 import '../../domain/model/destination_model.dart';
 import '../../domain/model/vote_config_model.dart';
 import '../bloc/destination_bloc.dart';
 import '../bloc/destination_event.dart';
 import '../bloc/destination_state.dart';
+import '../util/destination_scoring.dart';
 import 'destination_proposal_card.dart';
 import 'propose_destination_sheet.dart';
 import 'vote_input_widget.dart';
@@ -67,7 +69,8 @@ class _DestinationsTabState extends State<DestinationsTab> {
           state.maybeWhen(
             error: (message) {
               final wasLoaded = prev != null &&
-                  prev.maybeWhen(loaded: (a, b, c) => true, orElse: () => false);
+                  prev.maybeWhen(
+                      loaded: (a, b, c, d) => true, orElse: () => false);
               if (wasLoaded) {
                 ScaffoldMessenger.of(ctx).showSnackBar(
                   SnackBar(content: Text(message)),
@@ -83,43 +86,56 @@ class _DestinationsTabState extends State<DestinationsTab> {
             initial: () => const Center(child: CircularProgressIndicator()),
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (message) => _buildError(context, message),
-            loaded: (destinations, mode, myDeviceId) => Column(
-              children: [
-                VoteModeSelector(
-                  tripId: widget.tripId,
-                  currentMode: mode,
-                  isOrganizer: widget.isOrganizer,
-                  destinations: destinations,
-                ),
-                Expanded(
-                  child: destinations.isEmpty
-                      ? _buildEmpty(context)
-                      : ListView.builder(
-                          key: const ValueKey('destinations_list'),
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: destinations.length,
-                          itemBuilder: (_, i) {
-                            final d = destinations[i];
-                            final effectiveMode = mode ?? VoteMode.simple;
-                            return DestinationProposalCard(
-                              key: ValueKey('destination_card_${d.id}'),
-                              destination: d,
-                              voteInput: VoteInputWidget(
-                                tripId: widget.tripId,
+            loaded: (destinations, mode, myDeviceId, connectionBanner) {
+              final effectiveMode = mode ?? VoteMode.simple;
+              final leadingIds = DestinationScoring.leadingDestinationIds(
+                  destinations, effectiveMode);
+              return Column(
+                children: [
+                  if (connectionBanner != null)
+                    OfflineSyncBanner(
+                      key: const ValueKey('destinations_offline_banner'),
+                      message: connectionBanner,
+                    ),
+                  VoteModeSelector(
+                    tripId: widget.tripId,
+                    currentMode: mode,
+                    isOrganizer: widget.isOrganizer,
+                    destinations: destinations,
+                  ),
+                  Expanded(
+                    child: destinations.isEmpty
+                        ? _buildEmpty(context)
+                        : ListView.builder(
+                            key: const ValueKey('destinations_list'),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 8),
+                            itemCount: destinations.length,
+                            itemBuilder: (_, i) {
+                              final d = destinations[i];
+                              return DestinationProposalCard(
+                                key: ValueKey('destination_card_${d.id}'),
                                 destination: d,
-                                mode: effectiveMode,
-                                totalDestinationCount: destinations.length,
-                                myRankForThisDestination: _myRankFor(d),
-                                isMySimpleChoice: _isMyVoteCast(d),
-                                isMyApproval: _isMyVoteCast(d),
-                              ),
-                            );
-                          },
-                        ),
-                ),
-              ],
-            ),
+                                isLeading: leadingIds.contains(d.id),
+                                aggregateLabel:
+                                    DestinationScoring.aggregateLabel(
+                                        d.votes, effectiveMode),
+                                voteInput: VoteInputWidget(
+                                  tripId: widget.tripId,
+                                  destination: d,
+                                  mode: effectiveMode,
+                                  totalDestinationCount: destinations.length,
+                                  myRankForThisDestination: _myRankFor(d),
+                                  isMySimpleChoice: _isMyVoteCast(d),
+                                  isMyApproval: _isMyVoteCast(d),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              );
+            },
           );
         },
       ),
