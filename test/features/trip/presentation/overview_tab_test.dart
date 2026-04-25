@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:plantogether_app/features/trip/domain/model/trip_member_model.dart';
 import 'package:plantogether_app/features/trip/domain/model/trip_model.dart';
 import 'package:plantogether_app/features/trip/presentation/widgets/overview_tab.dart';
+import 'package:plantogether_app/features/trip/presentation/widgets/trip_progress_indicator.dart';
 import 'package:plantogether_app/features/trip/presentation/widgets/trip_summary_card.dart';
 import 'package:plantogether_app/shared/widgets/member_avatar_stack.dart';
 
