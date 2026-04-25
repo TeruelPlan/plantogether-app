@@ -42,6 +42,8 @@ abstract class DestinationRepository {
 
   Future<void> retractVote(String destinationId);
 
+  Future<DestinationModel> selectDestination(String destinationId);
+
   Future<CommentModel> addComment({
     required String destinationId,
     required String content,

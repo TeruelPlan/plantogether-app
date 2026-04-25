@@ -56,7 +56,7 @@ void main() {
       wait: const Duration(milliseconds: 50),
       verify: (bloc) {
         final mode = bloc.state.maybeWhen(
-          loaded: (_, m, _, _) => m,
+          loaded: (_, m, _, _, _) => m,
           orElse: () => null,
         );
         expect(mode, VoteMode.simple);

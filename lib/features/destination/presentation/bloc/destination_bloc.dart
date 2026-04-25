@@ -74,6 +74,7 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
     on<UpdateVoteConfig>(_onUpdateVoteConfig, transformer: droppable());
     on<CastVote>(_onCastVote, transformer: sequential());
     on<RetractVote>(_onRetractVote, transformer: sequential());
+    on<SelectDestination>(_onSelectDestination, transformer: droppable());
     on<TripUpdateReceived>(_onTripUpdateReceived);
     on<ConnectionStateChanged>(_onConnectionStateChanged,
         transformer: sequential());
@@ -174,6 +175,28 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
     await _runWithRecovery(event.tripId, emit, () async {
       await _repository.retractVote(event.destinationId);
     });
+  }
+
+  Future<void> _onSelectDestination(
+    SelectDestination event,
+    Emitter<DestinationState> emit,
+  ) async {
+    try {
+      await _repository.selectDestination(event.destinationId);
+      add(LoadDestinations(event.tripId));
+    } on DioException catch (e) {
+      final snapshot = _currentLoaded();
+      final message = e.response?.statusCode == 409
+          ? 'Destination already chosen for this trip.'
+          : _friendlyMessage(e);
+      if (snapshot != null) {
+        emit(snapshot.toState(transientError: message));
+      } else {
+        emit(DestinationState.error(message: message));
+      }
+    } catch (e) {
+      emit(DestinationState.error(message: _friendlyMessage(e)));
+    }
   }
 
   void _onTripUpdateReceived(
@@ -290,7 +313,8 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
 
   _LoadedSnapshot? _currentLoaded() {
     return state.whenOrNull(
-      loaded: (destinations, mode, myDeviceId, connectionBanner) =>
+      loaded: (destinations, mode, myDeviceId, connectionBanner,
+              transientError) =>
           _LoadedSnapshot(
         destinations: destinations,
         mode: mode,
@@ -346,6 +370,7 @@ class _LoadedSnapshot {
     VoteMode? mode,
     String? myDeviceId,
     Object? connectionBanner = _kNoChange,
+    String? transientError,
   }) {
     return DestinationState.loaded(
       destinations: destinations ?? this.destinations,
@@ -354,6 +379,7 @@ class _LoadedSnapshot {
       connectionBanner: identical(connectionBanner, _kNoChange)
           ? this.connectionBanner
           : connectionBanner as String?,
+      transientError: transientError,
     );
   }
 }

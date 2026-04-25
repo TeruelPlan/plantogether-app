@@ -40,7 +40,7 @@ void main() {
     updatedAt: DateTime.utc(2026, 4, 1),
   );
 
-  Widget buildWidget() {
+  Widget buildWidget({bool isOrganizer = false}) {
     when(() => mockRepository.listComments(any()))
         .thenAnswer((_) async => const []);
     return MaterialApp(
@@ -48,7 +48,7 @@ void main() {
         value: mockRepository,
         child: BlocProvider(
           create: (_) => DestinationBloc(mockRepository),
-          child: const DestinationsTab(tripId: tripId),
+          child: DestinationsTab(tripId: tripId, isOrganizer: isOrganizer),
         ),
       ),
     );
@@ -123,6 +123,85 @@ void main() {
     expect(find.byKey(const ValueKey('destination_leading_badge_w')),
         findsOneWidget);
     expect(find.byKey(const ValueKey('destination_leading_badge_l')),
+        findsNothing);
+  });
+
+  testWidgets('chosen_hidesProposeFab', (tester) async {
+    final chosen = DestinationModel(
+      id: 'c',
+      tripId: tripId,
+      name: 'Lisbon',
+      proposedByDeviceId: 'device-1',
+      createdAt: DateTime.utc(2026, 4, 1),
+      updatedAt: DateTime.utc(2026, 4, 1),
+      status: DestinationStatus.chosen,
+      chosenAt: DateTime.utc(2026, 4, 2),
+      chosenByDeviceId: 'device-1',
+    );
+    when(() => mockRepository.list(tripId))
+        .thenAnswer((_) async => [chosen]);
+
+    await tester.pumpWidget(buildWidget(isOrganizer: true));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('propose_destination_fab')),
+        findsNothing);
+    expect(find.byKey(const ValueKey('destination_chosen_badge_c')),
+        findsOneWidget);
+  });
+
+  testWidgets('chosen_disablesVoteInputWidgets_withTooltip', (tester) async {
+    final chosen = DestinationModel(
+      id: 'c',
+      tripId: tripId,
+      name: 'Lisbon',
+      proposedByDeviceId: 'device-1',
+      createdAt: DateTime.utc(2026, 4, 1),
+      updatedAt: DateTime.utc(2026, 4, 1),
+      status: DestinationStatus.chosen,
+      chosenAt: DateTime.utc(2026, 4, 2),
+      chosenByDeviceId: 'device-1',
+    );
+    when(() => mockRepository.list(tripId))
+        .thenAnswer((_) async => [chosen]);
+
+    await tester.pumpWidget(buildWidget());
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(ValueKey('vote_input_disabled_${chosen.id}')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('selectAction_showsConfirmationDialog_beforeDispatch',
+      (tester) async {
+    when(() => mockRepository.list(tripId))
+        .thenAnswer((_) async => [sample]);
+
+    await tester.pumpWidget(buildWidget(isOrganizer: true));
+    await tester.pumpAndSettle();
+
+    final selectButton = find.byKey(ValueKey('select_destination_button_${sample.id}'));
+    expect(selectButton, findsOneWidget);
+
+    await tester.tap(selectButton);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('select_destination_dialog')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('select_destination_dialog_confirm')),
+        findsOneWidget);
+  });
+
+  testWidgets('participant_doesNotRenderSelectAction', (tester) async {
+    when(() => mockRepository.list(tripId))
+        .thenAnswer((_) async => [sample]);
+
+    await tester.pumpWidget(buildWidget(isOrganizer: false));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(ValueKey('select_destination_button_${sample.id}')),
         findsNothing);
   });
 }

@@ -14,6 +14,19 @@ sealed class DestinationState with _$DestinationState {
     VoteMode? mode,
     String? myDeviceId,
     String? connectionBanner,
+    String? transientError,
   }) = _Loaded;
   const factory DestinationState.error({required String message}) = _Error;
+}
+
+extension DestinationStateChosenX on DestinationState {
+  DestinationModel? get chosenDestination => maybeWhen(
+        loaded: (destinations, _, __, ___, ____) {
+          for (final d in destinations) {
+            if (d.status == DestinationStatus.chosen) return d;
+          }
+          return null;
+        },
+        orElse: () => null,
+      );
 }
