@@ -6,6 +6,7 @@ class DestinationProposalCard extends StatelessWidget {
   final DestinationModel destination;
   final VoidCallback? onTap;
   final Widget? voteInput;
+  final Widget? commentsSlot;
   final bool isLeading;
   final String? aggregateLabel;
 
@@ -14,6 +15,7 @@ class DestinationProposalCard extends StatelessWidget {
     required this.destination,
     this.onTap,
     this.voteInput,
+    this.commentsSlot,
     this.isLeading = false,
     this.aggregateLabel,
   });
@@ -151,6 +153,12 @@ class DestinationProposalCard extends StatelessWidget {
                   const Divider(height: 1),
                   const SizedBox(height: 4),
                   voteInput!,
+                ],
+                if (commentsSlot != null) ...[
+                  const SizedBox(height: 8),
+                  const Divider(height: 1),
+                  const SizedBox(height: 4),
+                  commentsSlot!,
                 ],
               ],
             ),

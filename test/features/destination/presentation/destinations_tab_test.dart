@@ -41,10 +41,15 @@ void main() {
   );
 
   Widget buildWidget() {
+    when(() => mockRepository.listComments(any()))
+        .thenAnswer((_) async => const []);
     return MaterialApp(
-      home: BlocProvider(
-        create: (_) => DestinationBloc(mockRepository),
-        child: const DestinationsTab(tripId: tripId),
+      home: RepositoryProvider<DestinationRepository>.value(
+        value: mockRepository,
+        child: BlocProvider(
+          create: (_) => DestinationBloc(mockRepository),
+          child: const DestinationsTab(tripId: tripId),
+        ),
       ),
     );
   }

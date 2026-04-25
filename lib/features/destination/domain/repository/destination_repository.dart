@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../model/comment_model.dart';
 import '../model/destination_model.dart';
 import '../model/vote_config_model.dart';
 
@@ -40,4 +41,11 @@ abstract class DestinationRepository {
   Future<void> castVote(String destinationId, {int? rank});
 
   Future<void> retractVote(String destinationId);
+
+  Future<CommentModel> addComment({
+    required String destinationId,
+    required String content,
+  });
+
+  Future<List<CommentModel>> listComments(String destinationId);
 }

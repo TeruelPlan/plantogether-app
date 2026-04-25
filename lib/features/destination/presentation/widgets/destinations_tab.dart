@@ -5,22 +5,27 @@ import '../../../../shared/widgets/offline_sync_banner.dart';
 import '../../domain/model/destination_model.dart';
 import '../../domain/model/vote_config_model.dart';
 import '../bloc/destination_bloc.dart';
+import '../bloc/destination_comment_bloc.dart';
 import '../bloc/destination_event.dart';
 import '../bloc/destination_state.dart';
 import '../util/destination_scoring.dart';
+import 'comment_thread_widget.dart';
 import 'destination_proposal_card.dart';
 import 'propose_destination_sheet.dart';
 import 'vote_input_widget.dart';
 import 'vote_mode_selector.dart';
+import '../../domain/repository/destination_repository.dart';
 
 class DestinationsTab extends StatefulWidget {
   final String tripId;
   final bool isOrganizer;
+  final String? myDisplayName;
 
   const DestinationsTab({
     super.key,
     required this.tripId,
     this.isOrganizer = false,
+    this.myDisplayName,
   });
 
   @override
@@ -113,21 +118,34 @@ class _DestinationsTabState extends State<DestinationsTab> {
                             itemCount: destinations.length,
                             itemBuilder: (_, i) {
                               final d = destinations[i];
-                              return DestinationProposalCard(
+                              final repository =
+                                  context.read<DestinationRepository>();
+                              return BlocProvider(
                                 key: ValueKey('destination_card_${d.id}'),
-                                destination: d,
-                                isLeading: leadingIds.contains(d.id),
-                                aggregateLabel:
-                                    DestinationScoring.aggregateLabel(
-                                        d.votes, effectiveMode),
-                                voteInput: VoteInputWidget(
-                                  tripId: widget.tripId,
+                                create: (_) => DestinationCommentBloc(
+                                  repository,
+                                  myDeviceId: myDeviceId,
+                                  myDisplayName: widget.myDisplayName,
+                                ),
+                                child: DestinationProposalCard(
                                   destination: d,
-                                  mode: effectiveMode,
-                                  totalDestinationCount: destinations.length,
-                                  myRankForThisDestination: _myRankFor(d),
-                                  isMySimpleChoice: _isMyVoteCast(d),
-                                  isMyApproval: _isMyVoteCast(d),
+                                  isLeading: leadingIds.contains(d.id),
+                                  aggregateLabel:
+                                      DestinationScoring.aggregateLabel(
+                                          d.votes, effectiveMode),
+                                  voteInput: VoteInputWidget(
+                                    tripId: widget.tripId,
+                                    destination: d,
+                                    mode: effectiveMode,
+                                    totalDestinationCount:
+                                        destinations.length,
+                                    myRankForThisDestination: _myRankFor(d),
+                                    isMySimpleChoice: _isMyVoteCast(d),
+                                    isMyApproval: _isMyVoteCast(d),
+                                  ),
+                                  commentsSlot: CommentThreadWidget(
+                                    destinationId: d.id,
+                                  ),
                                 ),
                               );
                             },
