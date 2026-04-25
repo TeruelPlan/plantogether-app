@@ -1,3 +1,4 @@
+import '../../domain/model/comment_model.dart';
 import '../../domain/model/destination_model.dart';
 import '../../domain/model/vote_config_model.dart';
 import '../../domain/repository/destination_repository.dart';
@@ -52,5 +53,20 @@ class DestinationRepositoryImpl implements DestinationRepository {
   @override
   Future<void> retractVote(String destinationId) {
     return _remoteDatasource.retractVote(destinationId);
+  }
+
+  @override
+  Future<CommentModel> addComment({
+    required String destinationId,
+    required String content,
+  }) async {
+    final dto = await _remoteDatasource.addComment(destinationId, content);
+    return dto.toDomain();
+  }
+
+  @override
+  Future<List<CommentModel>> listComments(String destinationId) async {
+    final dtos = await _remoteDatasource.listComments(destinationId);
+    return dtos.map((d) => d.toDomain()).toList();
   }
 }

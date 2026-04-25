@@ -86,6 +86,10 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
           loaded: (trip) {
             final isOrganizer = _isOrganizer(trip);
             final isArchived = _isArchived(trip);
+            final myDisplayName = trip.members
+                .where((m) => m.isMe)
+                .map((m) => m.displayName)
+                .firstOrNull;
 
             return DefaultTabController(
               length: 5,
@@ -167,6 +171,7 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                     DestinationsTab(
                       tripId: widget.tripId,
                       isOrganizer: isOrganizer,
+                      myDisplayName: myDisplayName,
                     ),
                     const Center(child: Text('Expenses')),
                     const Center(child: Text('Tasks')),
