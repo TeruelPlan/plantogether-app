@@ -56,6 +56,13 @@ class DestinationRemoteDatasource {
     await _dioClient.dio.delete('/api/v1/destinations/$destinationId/vote');
   }
 
+  Future<DestinationDto> selectDestination(String destinationId) async {
+    final response = await _dioClient.dio.patch(
+      '/api/v1/destinations/$destinationId/select',
+    );
+    return DestinationDto.fromJson(response.data as Map<String, dynamic>);
+  }
+
   Future<CommentDto> addComment(String destinationId, String content) async {
     final response = await _dioClient.dio.post(
       '/api/v1/destinations/$destinationId/comments',

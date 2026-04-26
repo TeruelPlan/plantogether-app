@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:plantogether_app/features/trip/domain/model/trip_member_model.dart';
 import 'package:plantogether_app/features/trip/domain/model/trip_model.dart';
 import 'package:plantogether_app/features/trip/presentation/widgets/overview_tab.dart';
+import 'package:plantogether_app/features/trip/presentation/widgets/trip_progress_indicator.dart';
 import 'package:plantogether_app/features/trip/presentation/widgets/trip_summary_card.dart';
 import 'package:plantogether_app/shared/widgets/member_avatar_stack.dart';
 
@@ -55,11 +56,16 @@ void main() {
     ],
   );
 
-  Widget buildTestWidget(TripModel trip) {
+  Widget buildTestWidget(TripModel trip, {String? chosenDestinationName}) {
     return MaterialApp(
       home: DefaultTabController(
         length: 5,
-        child: Scaffold(body: OverviewTab(trip: trip)),
+        child: Scaffold(
+          body: OverviewTab(
+            trip: trip,
+            chosenDestinationName: chosenDestinationName,
+          ),
+        ),
       ),
     );
   }
@@ -91,6 +97,31 @@ void main() {
       await tester.pumpWidget(buildTestWidget(tripWithMembers));
 
       expect(find.text('Jun 1 — Jun 7'), findsOneWidget);
+    });
+
+    testWidgets('renders_destinationName_whenChosenProvided',
+        (tester) async {
+      await tester.pumpWidget(
+          buildTestWidget(tripWithMembers, chosenDestinationName: 'Lisbon'));
+
+      expect(find.text('Lisbon'), findsOneWidget);
+      expect(find.text('Propose a destination'), findsNothing);
+    });
+
+    testWidgets('renders_emptyStateCta_whenChosenNull', (tester) async {
+      await tester.pumpWidget(buildTestWidget(tripWithMembers));
+
+      expect(find.text('Propose a destination'), findsOneWidget);
+    });
+
+    testWidgets('progressIndicator_destinationChosen_trueWhenChosenProvided',
+        (tester) async {
+      await tester.pumpWidget(
+          buildTestWidget(tripWithMembers, chosenDestinationName: 'Lisbon'));
+
+      final indicator = tester.widget<TripProgressIndicator>(
+          find.byType(TripProgressIndicator));
+      expect(indicator.destinationChosen, isTrue);
     });
   });
 }

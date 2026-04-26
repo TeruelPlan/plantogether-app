@@ -56,6 +56,12 @@ class DestinationRepositoryImpl implements DestinationRepository {
   }
 
   @override
+  Future<DestinationModel> selectDestination(String destinationId) async {
+    final dto = await _remoteDatasource.selectDestination(destinationId);
+    return dto.toDomain();
+  }
+
+  @override
   Future<CommentModel> addComment({
     required String destinationId,
     required String content,

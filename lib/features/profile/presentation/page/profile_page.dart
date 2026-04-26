@@ -45,7 +45,12 @@ class _ProfilePageState extends State<ProfilePage> {
             },
             updateSuccess: (profile) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Profile updated')),
+                const SnackBar(
+                  content: Text(
+                    'Profile updated',
+                    key: Key('profile_update_success_snackbar'),
+                  ),
+                ),
               );
               _displayNameController.text = profile.displayName;
               setState(() => _isDirty = false);

@@ -44,6 +44,9 @@ class DestinationDto {
   final String proposedByDeviceId;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? status;
+  final DateTime? chosenAt;
+  final String? chosenByDeviceId;
   final DestinationVotesDto? votes;
 
   const DestinationDto({
@@ -58,6 +61,9 @@ class DestinationDto {
     required this.proposedByDeviceId,
     required this.createdAt,
     required this.updatedAt,
+    this.status,
+    this.chosenAt,
+    this.chosenByDeviceId,
     this.votes,
   });
 
@@ -78,6 +84,9 @@ class DestinationDto {
         proposedByDeviceId: proposedByDeviceId,
         createdAt: createdAt,
         updatedAt: updatedAt,
+        status: DestinationStatus.fromWire(status),
+        chosenAt: chosenAt,
+        chosenByDeviceId: chosenByDeviceId,
         votes: votes?.toDomain() ?? const DestinationVotesModel(),
       );
 }

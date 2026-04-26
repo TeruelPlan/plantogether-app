@@ -75,10 +75,18 @@ class _DestinationsTabState extends State<DestinationsTab> {
             error: (message) {
               final wasLoaded = prev != null &&
                   prev.maybeWhen(
-                      loaded: (a, b, c, d) => true, orElse: () => false);
+                      loaded: (a, b, c, d, e) => true, orElse: () => false);
               if (wasLoaded) {
                 ScaffoldMessenger.of(ctx).showSnackBar(
                   SnackBar(content: Text(message)),
+                );
+              }
+            },
+            loaded: (destinations, mode, myDeviceId, connectionBanner,
+                transientError) {
+              if (transientError != null) {
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  SnackBar(content: Text(transientError)),
                 );
               }
             },
@@ -91,10 +99,13 @@ class _DestinationsTabState extends State<DestinationsTab> {
             initial: () => const Center(child: CircularProgressIndicator()),
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (message) => _buildError(context, message),
-            loaded: (destinations, mode, myDeviceId, connectionBanner) {
+            loaded: (destinations, mode, myDeviceId, connectionBanner,
+                transientError) {
               final effectiveMode = mode ?? VoteMode.simple;
               final leadingIds = DestinationScoring.leadingDestinationIds(
                   destinations, effectiveMode);
+              final chosen = state.chosenDestination;
+              final hasChosen = chosen != null;
               return Column(
                 children: [
                   if (connectionBanner != null)
@@ -102,12 +113,13 @@ class _DestinationsTabState extends State<DestinationsTab> {
                       key: const ValueKey('destinations_offline_banner'),
                       message: connectionBanner,
                     ),
-                  VoteModeSelector(
-                    tripId: widget.tripId,
-                    currentMode: mode,
-                    isOrganizer: widget.isOrganizer,
-                    destinations: destinations,
-                  ),
+                  if (!hasChosen)
+                    VoteModeSelector(
+                      tripId: widget.tripId,
+                      currentMode: mode,
+                      isOrganizer: widget.isOrganizer,
+                      destinations: destinations,
+                    ),
                   Expanded(
                     child: destinations.isEmpty
                         ? _buildEmpty(context)
@@ -120,6 +132,10 @@ class _DestinationsTabState extends State<DestinationsTab> {
                               final d = destinations[i];
                               final repository =
                                   context.read<DestinationRepository>();
+                              final isThisChosen =
+                                  d.status == DestinationStatus.chosen;
+                              final showOrganizerAction =
+                                  widget.isOrganizer && !isThisChosen;
                               return BlocProvider(
                                 key: ValueKey('destination_card_${d.id}'),
                                 create: (_) => DestinationCommentBloc(
@@ -129,7 +145,8 @@ class _DestinationsTabState extends State<DestinationsTab> {
                                 ),
                                 child: DestinationProposalCard(
                                   destination: d,
-                                  isLeading: leadingIds.contains(d.id),
+                                  isLeading: !hasChosen &&
+                                      leadingIds.contains(d.id),
                                   aggregateLabel:
                                       DestinationScoring.aggregateLabel(
                                           d.votes, effectiveMode),
@@ -142,10 +159,21 @@ class _DestinationsTabState extends State<DestinationsTab> {
                                     myRankForThisDestination: _myRankFor(d),
                                     isMySimpleChoice: _isMyVoteCast(d),
                                     isMyApproval: _isMyVoteCast(d),
+                                    disabled: hasChosen,
                                   ),
                                   commentsSlot: CommentThreadWidget(
                                     destinationId: d.id,
                                   ),
+                                  organizerAction: showOrganizerAction
+                                      ? TextButton(
+                                          key: ValueKey(
+                                              'select_destination_button_${d.id}'),
+                                          onPressed: () => _onSelectTap(
+                                              context, d, hasChosen),
+                                          child: const Text(
+                                              'Select this destination'),
+                                        )
+                                      : null,
                                 ),
                               );
                             },
@@ -157,14 +185,57 @@ class _DestinationsTabState extends State<DestinationsTab> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        key: const ValueKey('propose_destination_fab'),
-        onPressed: _openSheet,
-        tooltip: 'Propose destination',
-        icon: const Icon(Icons.add_location_alt),
-        label: const Text('Propose destination'),
+      floatingActionButton: BlocBuilder<DestinationBloc, DestinationState>(
+        builder: (ctx, state) {
+          if (state.chosenDestination != null) return const SizedBox.shrink();
+          return FloatingActionButton.extended(
+            key: const ValueKey('propose_destination_fab'),
+            onPressed: _openSheet,
+            tooltip: 'Propose destination',
+            icon: const Icon(Icons.add_location_alt),
+            label: const Text('Propose destination'),
+          );
+        },
       ),
     );
+  }
+
+  Future<void> _onSelectTap(
+    BuildContext context,
+    DestinationModel destination,
+    bool replacing,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        key: const ValueKey('select_destination_dialog'),
+        title: Text(replacing
+            ? 'Replace current selection?'
+            : 'Select ${destination.name}?'),
+        content: Text(replacing
+            ? 'The current selection will be replaced. Voting and proposals stay locked.'
+            : 'Voting and proposals will be locked after this.'),
+        actions: [
+          TextButton(
+            key: const ValueKey('select_destination_dialog_cancel'),
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const ValueKey('select_destination_dialog_confirm'),
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || confirmed != true) return;
+    context.read<DestinationBloc>().add(
+          SelectDestination(
+            tripId: widget.tripId,
+            destinationId: destination.id,
+          ),
+        );
   }
 
   Widget _buildError(BuildContext context, String message) {

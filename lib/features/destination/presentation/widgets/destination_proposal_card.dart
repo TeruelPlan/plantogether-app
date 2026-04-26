@@ -9,6 +9,7 @@ class DestinationProposalCard extends StatelessWidget {
   final Widget? commentsSlot;
   final bool isLeading;
   final String? aggregateLabel;
+  final Widget? organizerAction;
 
   const DestinationProposalCard({
     super.key,
@@ -18,7 +19,10 @@ class DestinationProposalCard extends StatelessWidget {
     this.commentsSlot,
     this.isLeading = false,
     this.aggregateLabel,
+    this.organizerAction,
   });
+
+  bool get _isChosen => destination.status == DestinationStatus.chosen;
 
   @override
   Widget build(BuildContext context) {
@@ -43,11 +47,13 @@ class DestinationProposalCard extends StatelessWidget {
       container: true,
       label: semanticsLabel,
       child: Card(
-        key: isLeading
-            ? ValueKey('destination_card_leading_${destination.id}')
-            : null,
+        key: _isChosen
+            ? ValueKey('destination_card_chosen_${destination.id}')
+            : (isLeading
+                ? ValueKey('destination_card_leading_${destination.id}')
+                : null),
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        color: isLeading
+        color: (_isChosen || isLeading)
             ? colorScheme.primaryContainer.withValues(alpha: 0.35)
             : null,
         child: InkWell(
@@ -87,7 +93,24 @@ class DestinationProposalCard extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              if (isLeading) ...[
+                              if (_isChosen) ...[
+                                const SizedBox(width: 6),
+                                Chip(
+                                  key: ValueKey(
+                                      'destination_chosen_badge_${destination.id}'),
+                                  visualDensity: VisualDensity.compact,
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  avatar: Icon(
+                                    Icons.check_circle,
+                                    size: 18,
+                                    color: colorScheme.onPrimaryContainer,
+                                  ),
+                                  label: const Text('Selected ✓'),
+                                  backgroundColor:
+                                      colorScheme.primaryContainer,
+                                ),
+                              ] else if (isLeading) ...[
                                 const SizedBox(width: 6),
                                 Chip(
                                   key: ValueKey(
@@ -159,6 +182,13 @@ class DestinationProposalCard extends StatelessWidget {
                   const Divider(height: 1),
                   const SizedBox(height: 4),
                   commentsSlot!,
+                ],
+                if (organizerAction != null) ...[
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: organizerAction!,
+                  ),
                 ],
               ],
             ),

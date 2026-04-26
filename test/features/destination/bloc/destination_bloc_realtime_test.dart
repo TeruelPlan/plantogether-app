@@ -50,7 +50,7 @@ void main() {
 
   Future<void> waitForLoaded(DestinationBloc bloc) async {
     await bloc.stream.firstWhere((s) => s is! _Nothing && s.maybeWhen(
-          loaded: (_, _, _, _) => true,
+          loaded: (_, _, _, _, _) => true,
           orElse: () => false,
         ));
     // Give _ensureStompSubscription a chance to complete (async gap after
@@ -149,7 +149,7 @@ void main() {
 
     expect(
       bloc.state.maybeWhen(
-        loaded: (_, _, _, banner) => banner,
+        loaded: (_, _, _, banner, _) => banner,
         orElse: () => null,
       ),
       'Reconnecting…',
@@ -174,7 +174,7 @@ void main() {
     verify(() => repo.list(tripId)).called(1);
     expect(
       bloc.state.maybeWhen(
-        loaded: (_, _, _, banner) => banner,
+        loaded: (_, _, _, banner, _) => banner,
         orElse: () => 'x',
       ),
       isNull,

@@ -74,6 +74,16 @@ class RetractVote extends DestinationEvent {
   List<Object?> get props => [tripId, destinationId];
 }
 
+class SelectDestination extends DestinationEvent {
+  final String tripId;
+  final String destinationId;
+
+  const SelectDestination({required this.tripId, required this.destinationId});
+
+  @override
+  List<Object?> get props => [tripId, destinationId];
+}
+
 class TripUpdateReceived extends DestinationEvent {
   final Map<String, dynamic> payload;
 

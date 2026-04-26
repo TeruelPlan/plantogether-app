@@ -12,6 +12,7 @@ class OverviewTab extends StatelessWidget {
   final bool isArchived;
   final VoidCallback? onInviteTap;
   final VoidCallback? onMembersTap;
+  final String? chosenDestinationName;
 
   const OverviewTab({
     super.key,
@@ -19,6 +20,7 @@ class OverviewTab extends StatelessWidget {
     this.isArchived = false,
     this.onInviteTap,
     this.onMembersTap,
+    this.chosenDestinationName,
   });
 
   @override
@@ -57,7 +59,7 @@ class OverviewTab extends StatelessWidget {
           // Progress indicator
           TripProgressIndicator(
             datesConfirmed: trip.startDate != null && trip.endDate != null,
-            destinationChosen: false,
+            destinationChosen: chosenDestinationName != null,
             hasExpenses: false,
             hasTasks: false,
           ),
@@ -122,7 +124,7 @@ class OverviewTab extends StatelessWidget {
         TripSummaryCard(
           icon: Icons.place,
           title: 'Destination',
-          value: null,
+          value: chosenDestinationName,
           emptyMessage: 'Propose a destination',
           onTap: () => _switchTab(context, 2),
         ),

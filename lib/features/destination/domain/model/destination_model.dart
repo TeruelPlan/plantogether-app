@@ -12,6 +12,27 @@ abstract class DestinationVotesModel with _$DestinationVotesModel {
   }) = _DestinationVotesModel;
 }
 
+enum DestinationStatus {
+  proposed,
+  chosen;
+
+  static DestinationStatus fromWire(String? wire) {
+    if (wire == null) return DestinationStatus.proposed;
+    switch (wire.toUpperCase()) {
+      case 'CHOSEN':
+        return DestinationStatus.chosen;
+      case 'PROPOSED':
+      default:
+        return DestinationStatus.proposed;
+    }
+  }
+
+  String toWire() => switch (this) {
+        DestinationStatus.proposed => 'PROPOSED',
+        DestinationStatus.chosen => 'CHOSEN',
+      };
+}
+
 @freezed
 abstract class DestinationModel with _$DestinationModel {
   const factory DestinationModel({
@@ -26,6 +47,9 @@ abstract class DestinationModel with _$DestinationModel {
     required String proposedByDeviceId,
     required DateTime createdAt,
     required DateTime updatedAt,
+    @Default(DestinationStatus.proposed) DestinationStatus status,
+    DateTime? chosenAt,
+    String? chosenByDeviceId,
     @Default(DestinationVotesModel()) DestinationVotesModel votes,
   }) = _DestinationModel;
 }

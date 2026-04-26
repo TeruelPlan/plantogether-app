@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../destination/presentation/bloc/destination_bloc.dart';
+import '../../../destination/presentation/bloc/destination_event.dart';
+import '../../../destination/presentation/bloc/destination_state.dart';
 import '../../../destination/presentation/widgets/destinations_tab.dart';
 import '../../../poll/presentation/widgets/dates_tab.dart';
 import '../../domain/model/trip_model.dart';
@@ -31,6 +34,14 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
   void initState() {
     super.initState();
     context.read<TripDetailBloc>().add(LoadTripDetail(tripId: widget.tripId));
+    final destBloc = context.read<DestinationBloc>();
+    destBloc.state.maybeWhen(
+      initial: () {
+        destBloc.add(LoadDestinations(widget.tripId));
+        destBloc.add(LoadVoteConfig(widget.tripId));
+      },
+      orElse: () {},
+    );
   }
 
   bool _isOrganizer(TripModel trip) {
@@ -139,32 +150,54 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                   ],
                   bottom: const TabBar(
                     tabs: [
-                      Tab(text: 'Overview'),
-                      Tab(text: 'Dates'),
-                      Tab(text: 'Destinations'),
-                      Tab(text: 'Expenses'),
-                      Tab(text: 'Tasks'),
+                      Tab(
+                        key: ValueKey('trip_workspace_overview_tab'),
+                        text: 'Overview',
+                      ),
+                      Tab(
+                        key: ValueKey('trip_workspace_dates_tab'),
+                        text: 'Dates',
+                      ),
+                      Tab(
+                        key: ValueKey('trip_workspace_destinations_tab'),
+                        text: 'Destinations',
+                      ),
+                      Tab(
+                        key: ValueKey('trip_workspace_expenses_tab'),
+                        text: 'Expenses',
+                      ),
+                      Tab(
+                        key: ValueKey('trip_workspace_tasks_tab'),
+                        text: 'Tasks',
+                      ),
                     ],
                   ),
                 ),
                 body: TabBarView(
                   children: [
-                    OverviewTab(
-                      trip: trip,
-                      isArchived: isArchived,
-                      onInviteTap: isOrganizer
-                          ? () => context.push(
-                                '/trips/${widget.tripId}/invite',
-                                extra: trip.title,
-                              )
-                          : null,
-                      onMembersTap: () {
-                        final bloc = context.read<TripDetailBloc>();
-                        context
-                            .push('/trips/${widget.tripId}/members')
-                            .then((_) => bloc.add(
-                                  LoadTripDetail(tripId: widget.tripId),
-                                ));
+                    BlocBuilder<DestinationBloc, DestinationState>(
+                      builder: (ctx, destState) {
+                        final chosenName =
+                            destState.chosenDestination?.name;
+                        return OverviewTab(
+                          trip: trip,
+                          isArchived: isArchived,
+                          chosenDestinationName: chosenName,
+                          onInviteTap: isOrganizer
+                              ? () => context.push(
+                                    '/trips/${widget.tripId}/invite',
+                                    extra: trip.title,
+                                  )
+                              : null,
+                          onMembersTap: () {
+                            final bloc = context.read<TripDetailBloc>();
+                            context
+                                .push('/trips/${widget.tripId}/members')
+                                .then((_) => bloc.add(
+                                      LoadTripDetail(tripId: widget.tripId),
+                                    ));
+                          },
+                        );
                       },
                     ),
                     DatesTab(tripId: widget.tripId),
