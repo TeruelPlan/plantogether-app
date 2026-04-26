@@ -73,7 +73,7 @@ void main() {
       destination: dest,
       mode: VoteMode.simple,
       totalDestinationCount: 1,
-      isMySimpleChoice: true,
+      isVoteCast: true,
     )));
 
     await tester.tap(find.byIcon(Icons.radio_button_checked));
@@ -94,14 +94,14 @@ void main() {
         destination: d1,
         mode: VoteMode.approval,
         totalDestinationCount: 2,
-        isMyApproval: false,
+        isVoteCast: false,
       ),
       VoteInputWidget(
         tripId: 't1',
         destination: d2,
         mode: VoteMode.approval,
         totalDestinationCount: 2,
-        isMyApproval: true,
+        isVoteCast: true,
       ),
     ])));
 
