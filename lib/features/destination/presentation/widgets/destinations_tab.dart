@@ -34,7 +34,6 @@ class DestinationsTab extends StatefulWidget {
 
 class _DestinationsTabState extends State<DestinationsTab> {
   bool _sheetOpen = false;
-  DestinationState? _lastState;
 
   @override
   void initState() {
@@ -59,40 +58,30 @@ class _DestinationsTabState extends State<DestinationsTab> {
     }
   }
 
-  int? _myRankFor(DestinationModel destination) => destination.votes.myRank;
-
-  bool _isMyVoteCast(DestinationModel destination) =>
-      destination.votes.myVoteCast;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocConsumer<DestinationBloc, DestinationState>(
+        listenWhen: (prev, curr) {
+          final prevWasLoaded =
+              prev.maybeWhen(loaded: (a, b, c, d, e) => true, orElse: () => false);
+          if (prevWasLoaded &&
+              curr.maybeWhen(error: (_) => true, orElse: () => false)) {
+            return true;
+          }
+          return curr.maybeWhen(
+            loaded: (a, b, c, d, transientError) => transientError != null,
+            orElse: () => false,
+          );
+        },
         listener: (ctx, state) {
-          // Show a SnackBar on transient errors (e.g. UpdateVoteConfig 403).
-          final prev = _lastState;
           state.maybeWhen(
-            error: (message) {
-              final wasLoaded = prev != null &&
-                  prev.maybeWhen(
-                      loaded: (a, b, c, d, e) => true, orElse: () => false);
-              if (wasLoaded) {
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  SnackBar(content: Text(message)),
-                );
-              }
-            },
-            loaded: (destinations, mode, myDeviceId, connectionBanner,
-                transientError) {
-              if (transientError != null) {
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  SnackBar(content: Text(transientError)),
-                );
-              }
-            },
+            error: (message) => ScaffoldMessenger.of(ctx)
+                .showSnackBar(SnackBar(content: Text(message))),
+            loaded: (a, b, c, d, transientError) => ScaffoldMessenger.of(ctx)
+                .showSnackBar(SnackBar(content: Text(transientError!))),
             orElse: () {},
           );
-          _lastState = state;
         },
         builder: (context, state) {
           return state.when(
@@ -156,9 +145,8 @@ class _DestinationsTabState extends State<DestinationsTab> {
                                     mode: effectiveMode,
                                     totalDestinationCount:
                                         destinations.length,
-                                    myRankForThisDestination: _myRankFor(d),
-                                    isMySimpleChoice: _isMyVoteCast(d),
-                                    isMyApproval: _isMyVoteCast(d),
+                                    myRankForThisDestination: d.votes.myRank,
+                                    isVoteCast: d.votes.myVoteCast,
                                     disabled: hasChosen,
                                   ),
                                   commentsSlot: CommentThreadWidget(
@@ -205,6 +193,7 @@ class _DestinationsTabState extends State<DestinationsTab> {
     DestinationModel destination,
     bool replacing,
   ) async {
+    final bloc = context.read<DestinationBloc>();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
@@ -230,12 +219,12 @@ class _DestinationsTabState extends State<DestinationsTab> {
       ),
     );
     if (!mounted || confirmed != true) return;
-    context.read<DestinationBloc>().add(
-          SelectDestination(
-            tripId: widget.tripId,
-            destinationId: destination.id,
-          ),
-        );
+    bloc.add(
+      SelectDestination(
+        tripId: widget.tripId,
+        destinationId: destination.id,
+      ),
+    );
   }
 
   Widget _buildError(BuildContext context, String message) {

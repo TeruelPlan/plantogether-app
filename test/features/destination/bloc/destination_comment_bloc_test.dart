@@ -149,11 +149,16 @@ void main() {
     );
 
     blocTest<DestinationCommentBloc, DestinationCommentState>(
-      'addComment_blankContent_doesNotCallRepository',
+      'addComment_blankContent_emitsSubmitError',
       build: () => DestinationCommentBloc(repo),
       seed: () => const DestinationCommentState.loaded(comments: []),
       act: (b) => b.add(const AddComment(destinationId, '   ')),
-      expect: () => [],
+      expect: () => [
+        const DestinationCommentState.loaded(
+          comments: [],
+          submitError: 'Comment cannot be empty',
+        ),
+      ],
       verify: (_) {
         verifyNever(() => repo.addComment(
             destinationId: any(named: 'destinationId'),
@@ -162,11 +167,16 @@ void main() {
     );
 
     blocTest<DestinationCommentBloc, DestinationCommentState>(
-      'addComment_tooLong_doesNotCallRepository',
+      'addComment_tooLong_emitsSubmitError',
       build: () => DestinationCommentBloc(repo),
       seed: () => const DestinationCommentState.loaded(comments: []),
       act: (b) => b.add(AddComment(destinationId, 'a' * 2001)),
-      expect: () => [],
+      expect: () => [
+        const DestinationCommentState.loaded(
+          comments: [],
+          submitError: 'Comment must be at most 2000 characters',
+        ),
+      ],
     );
 
     blocTest<DestinationCommentBloc, DestinationCommentState>(

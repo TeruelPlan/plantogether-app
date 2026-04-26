@@ -21,7 +21,7 @@ sealed class DestinationState with _$DestinationState {
 
 extension DestinationStateChosenX on DestinationState {
   DestinationModel? get chosenDestination => maybeWhen(
-        loaded: (destinations, _, __, ___, ____) {
+        loaded: (destinations, _, _, _, _) {
           for (final d in destinations) {
             if (d.status == DestinationStatus.chosen) return d;
           }

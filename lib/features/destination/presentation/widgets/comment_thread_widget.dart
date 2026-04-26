@@ -19,7 +19,6 @@ class CommentThreadWidget extends StatefulWidget {
 class _CommentThreadWidgetState extends State<CommentThreadWidget> {
   late final TextEditingController _controller;
   late final FocusNode _focusNode;
-  String _helperText = '';
 
   @override
   void initState() {
@@ -42,15 +41,6 @@ class _CommentThreadWidgetState extends State<CommentThreadWidget> {
 
   void _submit() {
     final text = _controller.text.trim();
-    if (text.isEmpty) {
-      setState(() => _helperText = 'Comment cannot be empty');
-      return;
-    }
-    if (text.length > 2000) {
-      setState(() => _helperText = 'Comment must be at most 2000 characters');
-      return;
-    }
-    setState(() => _helperText = '');
     context
         .read<DestinationCommentBloc>()
         .add(AddComment(widget.destinationId, text));
@@ -61,7 +51,7 @@ class _CommentThreadWidgetState extends State<CommentThreadWidget> {
     return BlocConsumer<DestinationCommentBloc, DestinationCommentState>(
       listenWhen: (prev, curr) {
         final wasSubmitting = prev.maybeWhen(
-          loaded: (_, submitting, __) => submitting,
+          loaded: (_, submitting, _) => submitting,
           orElse: () => false,
         );
         final nowFinished = curr.maybeWhen(
@@ -154,9 +144,8 @@ class _CommentThreadWidgetState extends State<CommentThreadWidget> {
                 enabled: !submitting,
                 minLines: 1,
                 maxLines: 4,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Write a comment…',
-                  helperText: _helperText.isEmpty ? null : _helperText,
                 ),
               ),
             ),

@@ -207,7 +207,7 @@ class DestinationBloc extends Bloc<DestinationEvent, DestinationState> {
     final payload = event.payload;
     final type = payload['type'];
     final tripId = payload['tripId'];
-    if (type is! String || type != 'DESTINATION_VOTE_CAST') return;
+    if (type is! String || !type.startsWith('DESTINATION_')) return;
     if (tripId is! String || tripId != _currentTripId) return;
     add(DebouncedReload(_currentTripId!));
   }

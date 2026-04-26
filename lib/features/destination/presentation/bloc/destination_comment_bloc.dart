@@ -59,6 +59,16 @@ class DestinationCommentBloc
   ) async {
     final trimmed = event.content.trim();
     if (trimmed.isEmpty || trimmed.length > 2000) {
+      final previous = state.maybeWhen(
+        loaded: (comments, _, _) => comments,
+        orElse: () => <CommentModel>[],
+      );
+      emit(DestinationCommentState.loaded(
+        comments: previous,
+        submitError: trimmed.isEmpty
+            ? 'Comment cannot be empty'
+            : 'Comment must be at most 2000 characters',
+      ));
       return;
     }
 
