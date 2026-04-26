@@ -13,8 +13,7 @@ class VoteInputWidget extends StatelessWidget {
   final DestinationModel destination;
   final VoteMode mode;
   final int? myRankForThisDestination;
-  final bool isMySimpleChoice;
-  final bool isMyApproval;
+  final bool isVoteCast;
   final int totalDestinationCount;
   final bool disabled;
 
@@ -25,13 +24,12 @@ class VoteInputWidget extends StatelessWidget {
     required this.mode,
     required this.totalDestinationCount,
     this.myRankForThisDestination,
-    this.isMySimpleChoice = false,
-    this.isMyApproval = false,
+    this.isVoteCast = false,
     this.disabled = false,
   });
 
   void _castSimple(BuildContext context) {
-    if (isMySimpleChoice) {
+    if (isVoteCast) {
       context
           .read<DestinationBloc>()
           .add(RetractVote(tripId: tripId, destinationId: destination.id));
@@ -89,15 +87,15 @@ class VoteInputWidget extends StatelessWidget {
             children: [
               IconButton(
                 key: const ValueKey('vote_simple_button'),
-                tooltip: isMySimpleChoice ? 'Retract vote' : 'Vote',
+                tooltip: isVoteCast ? 'Retract vote' : 'Vote',
                 icon: Icon(
-                  isMySimpleChoice
+                  isVoteCast
                       ? Icons.radio_button_checked
                       : Icons.radio_button_unchecked,
                 ),
                 onPressed: disabled ? null : () => _castSimple(context),
               ),
-              Text(isMySimpleChoice ? 'Your pick' : 'Pick this'),
+              Text(isVoteCast ? 'Your pick' : 'Pick this'),
               const Spacer(),
               _votesCountBadge(context),
             ],
@@ -107,12 +105,12 @@ class VoteInputWidget extends StatelessWidget {
         return InkWell(
           key: const ValueKey('vote_approval_row'),
           onTap:
-              disabled ? null : () => _toggleApproval(context, !isMyApproval),
+              disabled ? null : () => _toggleApproval(context, !isVoteCast),
           child: Row(
             children: [
               Checkbox(
                 key: const ValueKey('vote_approval_checkbox'),
-                value: isMyApproval,
+                value: isVoteCast,
                 onChanged:
                     disabled ? null : (v) => _toggleApproval(context, v),
               ),

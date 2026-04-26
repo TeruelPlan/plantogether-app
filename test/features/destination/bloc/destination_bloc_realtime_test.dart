@@ -3,7 +3,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:plantogether_app/core/network/stomp_client_manager.dart';
 import 'package:plantogether_app/core/security/device_id_service.dart';
 import 'package:plantogether_app/features/destination/domain/model/destination_model.dart';
-import 'package:plantogether_app/features/destination/domain/model/vote_config_model.dart';
 import 'package:plantogether_app/features/destination/domain/repository/destination_repository.dart';
 import 'package:plantogether_app/features/destination/presentation/bloc/destination_bloc.dart';
 import 'package:plantogether_app/features/destination/presentation/bloc/destination_event.dart';
@@ -45,8 +44,6 @@ void main() {
         deviceIdService: deviceIdService,
         stompClientManager: fakeStomp,
       );
-
-  Future<void> pumpEventLoop() => Future<void>.delayed(Duration.zero);
 
   Future<void> waitForLoaded(DestinationBloc bloc) async {
     await bloc.stream.firstWhere((s) => s is! _Nothing && s.maybeWhen(
