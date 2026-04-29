@@ -1,0 +1,24 @@
+{
+  "@@locale": "en",
+  "fxFallbackChip": "Cached rate from {date}",
+  "@fxFallbackChip": {
+    "description": "Warning chip on an expense card whose FX rate came from the unbounded last-known cache (provider unavailable).",
+    "placeholders": {
+      "date": { "type": "String", "example": "2026-04-28" }
+    }
+  },
+  "fxUnavailableError": "Exchange rate unavailable for {from} → {to}. Try again or change currency.",
+  "@fxUnavailableError": {
+    "description": "Inline error shown on the expense form when the backend returns 503 because no FX rate (live, cached, or last-known) is available.",
+    "placeholders": {
+      "from": { "type": "String", "example": "USD" },
+      "to":   { "type": "String", "example": "EUR" }
+    }
+  },
+  "fxSourceLive": "Live",
+  "@fxSourceLive": { "description": "Label for an FX rate fetched from the provider during the request." },
+  "fxSourceCached": "Cached",
+  "@fxSourceCached": { "description": "Label for an FX rate read from the 24h Redis cache." },
+  "fxSourceFallback": "Cached (offline)",
+  "@fxSourceFallback": { "description": "Label for an FX rate read from the unbounded last-known mirror because the provider was unavailable." }
+}
