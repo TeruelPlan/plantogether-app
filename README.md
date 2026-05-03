@@ -11,6 +11,7 @@ list kept in memory), which avoids any PII storage on the server side in service
 
 ## Features
 
+
 - Anonymous device-based identity (no login, no account creation)
 - Full trip management (creation, members, QR code / deep link invitations)
 - Date polls (vote YES / MAYBE / NO)
