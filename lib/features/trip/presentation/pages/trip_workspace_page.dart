@@ -6,6 +6,7 @@ import '../../../destination/presentation/bloc/destination_bloc.dart';
 import '../../../destination/presentation/bloc/destination_event.dart';
 import '../../../destination/presentation/bloc/destination_state.dart';
 import '../../../destination/presentation/widgets/destinations_tab.dart';
+import '../../../expense/presentation/page/expenses_tab.dart';
 import '../../../poll/presentation/widgets/dates_tab.dart';
 import '../../domain/model/trip_model.dart';
 import '../bloc/trip_detail_bloc.dart';
@@ -206,7 +207,7 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                       isOrganizer: isOrganizer,
                       myDisplayName: myDisplayName,
                     ),
-                    const Center(child: Text('Expenses')),
+                    ExpensesTab(tripId: widget.tripId, trip: trip),
                     const Center(child: Text('Tasks')),
                   ],
                 ),

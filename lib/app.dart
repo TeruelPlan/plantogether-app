@@ -19,6 +19,9 @@ import 'features/poll/domain/repository/poll_repository.dart';
 import 'features/trip/data/datasource/trip_remote_datasource.dart';
 import 'features/trip/data/repository/trip_repository_impl.dart';
 import 'features/trip/domain/repository/trip_repository.dart';
+import 'features/expense/data/datasource/expense_remote_datasource.dart';
+import 'features/expense/data/repository/expense_repository_impl.dart';
+import 'features/expense/domain/repository/expense_repository.dart';
 
 class PlanTogetherApp extends StatelessWidget {
   const PlanTogetherApp({super.key});
@@ -55,6 +58,12 @@ class PlanTogetherApp extends StatelessWidget {
         RepositoryProvider<DestinationRepository>(
             create: (ctx) => DestinationRepositoryImpl(
                 ctx.read<DestinationRemoteDatasource>())),
+        RepositoryProvider(
+            create: (ctx) =>
+                ExpenseRemoteDatasource(ctx.read<DioClient>())),
+        RepositoryProvider<ExpenseRepository>(
+            create: (ctx) => ExpenseRepositoryImpl(
+                ctx.read<ExpenseRemoteDatasource>())),
       ],
       child: BlocProvider(
         create: (ctx) =>
