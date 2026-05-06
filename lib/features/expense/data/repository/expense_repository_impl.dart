@@ -53,6 +53,77 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     }
   }
 
+  @override
+  Future<Expense> updateExpense(
+      String expenseId, UpdateExpenseInput input) async {
+    try {
+      final body = UpdateExpenseRequestDto(
+        amount: input.amount,
+        currency: input.currency,
+        category: input.category.toWire(),
+        description: input.description,
+        receiptKey: input.receiptKey,
+        splitMode: input.splitMode.toWire(),
+        splits: input.splits
+            ?.map((s) => SplitInputDto(
+                  deviceId: s.deviceId,
+                  shareAmount: s.shareAmount,
+                ))
+            .toList(),
+      );
+      final dto = await _remoteDatasource.update(expenseId, body);
+      return dto.toDomain();
+    } on DioException catch (e) {
+      throw _mapModificationError(e, fallback: 'Failed to update expense');
+    }
+  }
+
+  @override
+  Future<void> deleteExpense(String expenseId) async {
+    try {
+      await _remoteDatasource.delete(expenseId);
+    } on DioException catch (e) {
+      throw _mapModificationError(e, fallback: 'Failed to delete expense');
+    }
+  }
+
+  ExpenseSubmitError _mapModificationError(DioException e,
+      {required String fallback}) {
+    final statusCode = e.response?.statusCode;
+    final data = e.response?.data;
+    String? detail;
+    if (data is Map<String, dynamic>) {
+      detail = data['detail'] as String?;
+    }
+    if (statusCode == 403) {
+      return const ExpenseSubmitError(
+        message: "You can't modify this expense anymore",
+        statusCode: 403,
+      );
+    }
+    if (statusCode == 404) {
+      return const ExpenseSubmitError(
+        message: 'This expense no longer exists',
+        statusCode: 404,
+      );
+    }
+    if (statusCode == 400) {
+      return ExpenseSubmitError(
+        message: detail ?? 'Invalid expense data. Please check your inputs',
+        statusCode: 400,
+      );
+    }
+    if (statusCode != null && statusCode >= 500) {
+      return ExpenseSubmitError(
+        message: detail ?? fallback,
+        statusCode: statusCode,
+      );
+    }
+    return const ExpenseSubmitError(
+      message: 'Network error. Please check your connection',
+    );
+  }
+
   ExpenseSubmitError _mapSubmitError(
       DioException e, RecordExpenseInput input) {
     final statusCode = e.response?.statusCode;

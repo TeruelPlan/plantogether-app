@@ -118,6 +118,32 @@ class RecordExpenseRequestDto {
   Map<String, dynamic> toJson() => _$RecordExpenseRequestDtoToJson(this);
 }
 
+@JsonSerializable(includeIfNull: false)
+class UpdateExpenseRequestDto {
+  final double amount;
+  final String currency;
+  final String category;
+  final String description;
+  final String? receiptKey;
+  final String splitMode;
+  final List<SplitInputDto>? splits;
+
+  const UpdateExpenseRequestDto({
+    required this.amount,
+    required this.currency,
+    required this.category,
+    required this.description,
+    this.receiptKey,
+    required this.splitMode,
+    this.splits,
+  });
+
+  factory UpdateExpenseRequestDto.fromJson(Map<String, dynamic> json) =>
+      _$UpdateExpenseRequestDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UpdateExpenseRequestDtoToJson(this);
+}
+
 @JsonSerializable()
 class SplitInputDto {
   final String deviceId;
