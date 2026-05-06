@@ -100,6 +100,7 @@ class _EditExpenseSheetState extends State<_EditExpenseSheet> {
             currency: _currency,
             category: _category,
             description: _descriptionController.text.trim(),
+            receiptKey: widget.expense.receiptKey,
             splitMode: widget.expense.splitMode,
             splits: widget.expense.splits,
           ),
@@ -112,8 +113,11 @@ class _EditExpenseSheetState extends State<_EditExpenseSheet> {
       listenWhen: (_, current) {
         if (!_submitted) return false;
         return current.maybeWhen(
-          loaded: (_, __, ___, ____) => true,
-          loading: () => false,
+          // Pop ONLY on the dedicated post-PUT signal scoped to this expense —
+          // a background LoadExpenses lands as `loaded` and must not close the
+          // sheet mid-edit.
+          updateCompleted: (expenseId, _, __, ___, ____) =>
+              expenseId == widget.expense.id,
           error: (_) => true,
           submitFailed: (_, __, ___, ____, _____) => true,
           orElse: () => false,
@@ -121,7 +125,7 @@ class _EditExpenseSheetState extends State<_EditExpenseSheet> {
       },
       listener: (context, state) {
         state.whenOrNull(
-          loaded: (_, __, ___, ____) {
+          updateCompleted: (_, __, ___, ____, _____) {
             if (!mounted) return;
             Navigator.of(context).pop();
           },

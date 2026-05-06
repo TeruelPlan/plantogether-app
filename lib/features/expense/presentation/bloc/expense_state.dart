@@ -27,4 +27,15 @@ sealed class ExpenseState with _$ExpenseState {
     required int currentPage,
     required bool hasMore,
   }) = _SubmitFailed;
+
+  /// Transient signal emitted after a successful update PUT for [expenseId].
+  /// The edit sheet listens specifically for this state to close itself —
+  /// guards against the sheet auto-popping on an unrelated background reload.
+  const factory ExpenseState.updateCompleted({
+    required String expenseId,
+    required List<Expense> expenses,
+    required int totalElements,
+    required int currentPage,
+    required bool hasMore,
+  }) = _UpdateCompleted;
 }

@@ -62,51 +62,77 @@ void main() {
 
   group('UpdateExpense', () {
     blocTest<ExpenseBloc, ExpenseState>(
-      'success → reloads list',
+      'success → emits updateCompleted then loaded (in-place, no reload)',
       setUp: () {
         when(() => repository.updateExpense(any(), any()))
             .thenAnswer((_) async => expense('e-1'));
-        when(() => repository.list(tripId)).thenAnswer((_) async => page());
       },
       build: () => ExpenseBloc(repository),
       seed: seedLoaded,
       act: (b) => b.add(UpdateExpense(
           tripId: tripId, expenseId: 'e-1', input: input())),
-      verify: (_) =>
-          verify(() => repository.updateExpense('e-1', any())).called(1),
+      verify: (bloc) {
+        verify(() => repository.updateExpense('e-1', any())).called(1);
+        // No reload — in-place state update only (P13).
+        verifyNever(() => repository.list(tripId));
+        // Final settled state is loaded.
+        expect(
+          bloc.state.maybeWhen(
+            loaded: (expenses, _, __, ___) =>
+                expenses.any((e) => e.id == 'e-1'),
+            orElse: () => false,
+          ),
+          isTrue,
+        );
+      },
     );
 
     blocTest<ExpenseBloc, ExpenseState>(
-      '403 → emits submitFailed and reloads list',
+      '403 → submitFailed then prunes stale entry locally',
       setUp: () {
         when(() => repository.updateExpense(any(), any())).thenThrow(
             const ExpenseSubmitError(message: 'forbidden', statusCode: 403));
-        when(() => repository.list(tripId)).thenAnswer((_) async => page());
       },
       build: () => ExpenseBloc(repository),
       seed: seedLoaded,
       act: (b) => b.add(UpdateExpense(
           tripId: tripId, expenseId: 'e-1', input: input())),
-      verify: (_) {
+      verify: (bloc) {
         verify(() => repository.updateExpense('e-1', any())).called(1);
-        verify(() => repository.list(tripId)).called(1);
+        // No reload — local prune (P13).
+        verifyNever(() => repository.list(tripId));
+        expect(
+          bloc.state.maybeWhen(
+            loaded: (expenses, _, __, ___) =>
+                expenses.every((e) => e.id != 'e-1'),
+            orElse: () => false,
+          ),
+          isTrue,
+        );
       },
     );
 
     blocTest<ExpenseBloc, ExpenseState>(
-      '404 → emits submitFailed and reloads list',
+      '404 → submitFailed then prunes stale entry locally',
       setUp: () {
         when(() => repository.updateExpense(any(), any())).thenThrow(
             const ExpenseSubmitError(message: 'gone', statusCode: 404));
-        when(() => repository.list(tripId)).thenAnswer((_) async => page());
       },
       build: () => ExpenseBloc(repository),
       seed: seedLoaded,
       act: (b) => b.add(UpdateExpense(
           tripId: tripId, expenseId: 'e-1', input: input())),
-      verify: (_) {
+      verify: (bloc) {
         verify(() => repository.updateExpense('e-1', any())).called(1);
-        verify(() => repository.list(tripId)).called(1);
+        verifyNever(() => repository.list(tripId));
+        expect(
+          bloc.state.maybeWhen(
+            loaded: (expenses, _, __, ___) =>
+                expenses.every((e) => e.id != 'e-1'),
+            orElse: () => false,
+          ),
+          isTrue,
+        );
       },
     );
 
@@ -129,17 +155,25 @@ void main() {
 
   group('DeleteExpense', () {
     blocTest<ExpenseBloc, ExpenseState>(
-      'success → optimistic remove then reload',
+      'success → optimistic remove kept, no reload',
       setUp: () {
         when(() => repository.deleteExpense(any())).thenAnswer((_) async {});
-        when(() => repository.list(tripId)).thenAnswer((_) async => page());
       },
       build: () => ExpenseBloc(repository),
       seed: seedLoaded,
       act: (b) => b.add(DeleteExpense(tripId: tripId, expenseId: 'e-1')),
       verify: (bloc) {
         verify(() => repository.deleteExpense('e-1')).called(1);
-        verify(() => repository.list(tripId)).called(1);
+        // P6/P13: no reload after success — racing with concurrent reloads.
+        verifyNever(() => repository.list(tripId));
+        expect(
+          bloc.state.maybeWhen(
+            loaded: (expenses, _, __, ___) =>
+                expenses.every((e) => e.id != 'e-1'),
+            orElse: () => false,
+          ),
+          isTrue,
+        );
       },
     );
 
@@ -165,19 +199,32 @@ void main() {
     );
 
     blocTest<ExpenseBloc, ExpenseState>(
-      '404 → keeps optimistic removal and reloads',
+      '404 → keeps optimistic removal, no reload',
       setUp: () {
         when(() => repository.deleteExpense(any())).thenThrow(
             const ExpenseSubmitError(message: 'gone', statusCode: 404));
-        when(() => repository.list(tripId)).thenAnswer((_) async => page());
       },
       build: () => ExpenseBloc(repository),
       seed: seedLoaded,
       act: (b) => b.add(DeleteExpense(tripId: tripId, expenseId: 'e-1')),
-      verify: (_) {
+      verify: (bloc) {
         verify(() => repository.deleteExpense('e-1')).called(1);
-        verify(() => repository.list(tripId)).called(1);
+        verifyNever(() => repository.list(tripId));
+        expect(
+          bloc.state.maybeWhen(
+            loaded: (expenses, _, __, ___) =>
+                expenses.every((e) => e.id != 'e-1'),
+            orElse: () => false,
+          ),
+          isTrue,
+        );
       },
     );
+
+    // P6 — the rollback diffs against `state` (current) instead of replaying a
+    // pre-flight snapshot. A concurrent reload landing between the optimistic
+    // emit and the failure can no longer be overwritten. Driving an external
+    // mid-flight `emit()` requires test-only access to a protected API; the
+    // behavior is exercised in widget integration tests (Marionette flow).
   });
 }

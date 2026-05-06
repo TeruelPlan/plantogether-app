@@ -47,7 +47,8 @@ class _ExpensesTabState extends State<ExpensesTab> {
 
   bool get _isOrganizer {
     final me = widget.trip.members.where((m) => m.isMe).firstOrNull;
-    return me?.role == 'ORGANIZER';
+    final role = me?.role;
+    return role != null && role.toUpperCase() == 'ORGANIZER';
   }
 
   bool _canModify(String paidByDeviceId) {
@@ -64,12 +65,20 @@ class _ExpensesTabState extends State<ExpensesTab> {
     );
   }
 
+  bool _deleteInFlight = false;
+
   Future<void> _confirmDelete(BuildContext context, expense) async {
-    final confirmed = await ConfirmDeleteDialog.show(context);
-    if (confirmed == true && mounted) {
-      context.read<ExpenseBloc>().add(
-            DeleteExpense(tripId: widget.tripId, expenseId: expense.id),
-          );
+    if (_deleteInFlight) return;
+    _deleteInFlight = true;
+    try {
+      final confirmed = await ConfirmDeleteDialog.show(context);
+      if (confirmed == true && mounted) {
+        context.read<ExpenseBloc>().add(
+              DeleteExpense(tripId: widget.tripId, expenseId: expense.id),
+            );
+      }
+    } finally {
+      _deleteInFlight = false;
     }
   }
 
@@ -128,6 +137,12 @@ class _ExpensesTabState extends State<ExpensesTab> {
             return _buildLoadedState(expenses);
           },
           submitFailed: (_, expenses, __, ___, ____) {
+            if (expenses.isEmpty) {
+              return _buildEmptyState();
+            }
+            return _buildLoadedState(expenses);
+          },
+          updateCompleted: (_, expenses, __, ___, ____) {
             if (expenses.isEmpty) {
               return _buildEmptyState();
             }
