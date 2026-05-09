@@ -15,6 +15,21 @@ class ExpenseRemoteDatasource {
     return ExpenseDto.fromJson(response.data as Map<String, dynamic>);
   }
 
+  Future<ExpenseDto> update(
+    String expenseId,
+    UpdateExpenseRequestDto body,
+  ) async {
+    final response = await _dioClient.dio.put(
+      '/api/v1/expenses/$expenseId',
+      data: body.toJson(),
+    );
+    return ExpenseDto.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<void> delete(String expenseId) async {
+    await _dioClient.dio.delete('/api/v1/expenses/$expenseId');
+  }
+
   Future<PageDto<ExpenseDto>> list(
     String tripId, {
     int page = 0,

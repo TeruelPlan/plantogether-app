@@ -7,11 +7,17 @@ import 'expense_detail_sheet.dart';
 class ExpenseCard extends StatelessWidget {
   final Expense expense;
   final String payerDisplayName;
+  final bool canModify;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const ExpenseCard({
     super.key,
     required this.expense,
     required this.payerDisplayName,
+    this.canModify = false,
+    this.onEdit,
+    this.onDelete,
   });
 
   String _relativeDate(DateTime date) {
@@ -122,9 +128,51 @@ class ExpenseCard extends StatelessWidget {
               ),
             ],
           ),
-          trailing: Text(
-            _relativeDate(expense.createdAt),
-            style: theme.textTheme.bodySmall,
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _relativeDate(expense.createdAt),
+                style: theme.textTheme.bodySmall,
+              ),
+              if (canModify)
+                PopupMenuButton<String>(
+                  key: ValueKey('expense_card_menu_${expense.id}'),
+                  tooltip: 'Edit or delete',
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'edit':
+                        onEdit?.call();
+                      case 'delete':
+                        onDelete?.call();
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    PopupMenuItem(
+                      key: ValueKey('expense_card_edit_${expense.id}'),
+                      value: 'edit',
+                      child: const Row(children: [
+                        Icon(Icons.edit_outlined),
+                        SizedBox(width: 8),
+                        Text('Edit'),
+                      ]),
+                    ),
+                    PopupMenuItem(
+                      key: ValueKey('expense_card_delete_${expense.id}'),
+                      value: 'delete',
+                      child: Row(children: [
+                        Icon(Icons.delete_outline,
+                            color: theme.colorScheme.error),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Delete',
+                          style: TextStyle(color: theme.colorScheme.error),
+                        ),
+                      ]),
+                    ),
+                  ],
+                ),
+            ],
           ),
           isThreeLine: true,
         ),

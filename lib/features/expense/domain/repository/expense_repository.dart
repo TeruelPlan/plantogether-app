@@ -3,6 +3,28 @@ import '../entity/expense.dart';
 abstract class ExpenseRepository {
   Future<Expense> record(String tripId, RecordExpenseInput input);
   Future<ExpensePage> list(String tripId, {int page = 0, int size = 20});
+  Future<Expense> updateExpense(String expenseId, UpdateExpenseInput input);
+  Future<void> deleteExpense(String expenseId);
+}
+
+class UpdateExpenseInput {
+  final double amount;
+  final String currency;
+  final ExpenseCategory category;
+  final String description;
+  final String? receiptKey;
+  final SplitMode splitMode;
+  final List<ExpenseSplit>? splits;
+
+  const UpdateExpenseInput({
+    required this.amount,
+    required this.currency,
+    required this.category,
+    required this.description,
+    this.receiptKey,
+    this.splitMode = SplitMode.equal,
+    this.splits,
+  });
 }
 
 class ExpensePage {

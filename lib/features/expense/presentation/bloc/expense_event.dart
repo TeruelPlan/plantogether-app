@@ -27,3 +27,28 @@ class RecordExpense extends ExpenseEvent {
   @override
   List<Object?> get props => [tripId, input];
 }
+
+class UpdateExpense extends ExpenseEvent {
+  final String tripId;
+  final String expenseId;
+  final UpdateExpenseInput input;
+
+  const UpdateExpense({
+    required this.tripId,
+    required this.expenseId,
+    required this.input,
+  });
+
+  @override
+  List<Object?> get props => [tripId, expenseId, input];
+}
+
+class DeleteExpense extends ExpenseEvent {
+  final String tripId;
+  final String expenseId;
+
+  const DeleteExpense({required this.tripId, required this.expenseId});
+
+  @override
+  List<Object?> get props => [tripId, expenseId];
+}
