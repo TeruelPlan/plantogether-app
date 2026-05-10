@@ -11,13 +11,16 @@ class DestinationCommentBloc
     extends Bloc<DestinationCommentEvent, DestinationCommentState> {
   final DestinationRepository _repository;
   final String? _myDeviceId;
+  final String? _myMemberId;
   final String? _myDisplayName;
 
   DestinationCommentBloc(
     this._repository, {
     String? myDeviceId,
+    String? myMemberId,
     String? myDisplayName,
   })  : _myDeviceId = myDeviceId,
+        _myMemberId = myMemberId,
         _myDisplayName = myDisplayName,
         super(const DestinationCommentState.initial()) {
     on<LoadComments>(_onLoad, transformer: droppable());
@@ -82,6 +85,7 @@ class DestinationCommentBloc
       id: tempId,
       destinationId: event.destinationId,
       authorDeviceId: _myDeviceId ?? 'me',
+      authorMemberId: _myMemberId,
       authorDisplayName: _myDisplayName ?? 'You',
       content: trimmed,
       createdAt: DateTime.now().toUtc(),

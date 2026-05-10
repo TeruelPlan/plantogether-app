@@ -7,17 +7,25 @@ part 'expense_dto.g.dart';
 @JsonSerializable()
 class ExpenseSplitDto {
   final String deviceId;
+  final String? memberId;
   final double shareAmount;
 
-  const ExpenseSplitDto({required this.deviceId, required this.shareAmount});
+  const ExpenseSplitDto({
+    required this.deviceId,
+    this.memberId,
+    required this.shareAmount,
+  });
 
   factory ExpenseSplitDto.fromJson(Map<String, dynamic> json) =>
       _$ExpenseSplitDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$ExpenseSplitDtoToJson(this);
 
-  ExpenseSplit toDomain() =>
-      ExpenseSplit(deviceId: deviceId, shareAmount: shareAmount);
+  ExpenseSplit toDomain() => ExpenseSplit(
+        deviceId: deviceId,
+        memberId: memberId,
+        shareAmount: shareAmount,
+      );
 }
 
 @JsonSerializable()
@@ -25,6 +33,7 @@ class ExpenseDto {
   final String id;
   final String tripId;
   final String paidByDeviceId;
+  final String? paidByMemberId;
   final double amount;
   final String currency;
   final String category;
@@ -46,6 +55,7 @@ class ExpenseDto {
     required this.id,
     required this.tripId,
     required this.paidByDeviceId,
+    this.paidByMemberId,
     required this.amount,
     required this.currency,
     required this.category,
@@ -71,6 +81,7 @@ class ExpenseDto {
         id: id,
         tripId: tripId,
         paidByDeviceId: paidByDeviceId,
+        paidByMemberId: paidByMemberId,
         amount: amount,
         currency: currency,
         category: ExpenseCategory.fromWire(category),
@@ -147,9 +158,14 @@ class UpdateExpenseRequestDto {
 @JsonSerializable()
 class SplitInputDto {
   final String deviceId;
+  final String? memberId;
   final double shareAmount;
 
-  const SplitInputDto({required this.deviceId, required this.shareAmount});
+  const SplitInputDto({
+    required this.deviceId,
+    this.memberId,
+    required this.shareAmount,
+  });
 
   factory SplitInputDto.fromJson(Map<String, dynamic> json) =>
       _$SplitInputDtoFromJson(json);

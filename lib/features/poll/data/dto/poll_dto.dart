@@ -38,6 +38,7 @@ class PollDto {
   final String title;
   final String status;
   final String createdBy;
+  final String? createdByMemberId;
   final DateTime createdAt;
   final List<PollSlotDto>? slots;
 
@@ -47,6 +48,7 @@ class PollDto {
     required this.title,
     required this.status,
     required this.createdBy,
+    this.createdByMemberId,
     required this.createdAt,
     this.slots,
   });

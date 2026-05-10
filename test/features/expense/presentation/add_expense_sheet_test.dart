@@ -2,32 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:plantogether_app/core/security/device_id_service.dart';
 import 'package:plantogether_app/features/expense/domain/entity/expense.dart';
 import 'package:plantogether_app/features/expense/domain/repository/expense_repository.dart';
 import 'package:plantogether_app/features/expense/presentation/bloc/expense_bloc.dart';
 import 'package:plantogether_app/features/expense/presentation/bloc/expense_state.dart';
 import 'package:plantogether_app/features/expense/presentation/widget/add_expense_sheet.dart';
+import 'package:plantogether_app/features/trip/domain/model/current_member_model.dart';
 import 'package:plantogether_app/features/trip/domain/model/trip_member_model.dart';
 import 'package:plantogether_app/features/trip/domain/model/trip_model.dart';
+import 'package:plantogether_app/features/trip/domain/repository/trip_repository.dart';
+import 'package:plantogether_app/features/trip/presentation/bloc/current_member_cubit.dart';
 
 class MockExpenseRepository extends Mock implements ExpenseRepository {}
 
-class MockDeviceIdService extends Mock implements DeviceIdService {}
+class MockTripRepository extends Mock implements TripRepository {}
 
 class FakeRecordExpenseInput extends Fake implements RecordExpenseInput {}
 
 void main() {
-  late MockDeviceIdService mockDeviceIdService;
+  late MockTripRepository mockTripRepository;
 
   setUpAll(() {
     registerFallbackValue(FakeRecordExpenseInput());
   });
 
   setUp(() {
-    mockDeviceIdService = MockDeviceIdService();
-    when(() => mockDeviceIdService.getOrCreateDeviceId())
-        .thenAnswer((_) async => 'device-1');
+    mockTripRepository = MockTripRepository();
+    when(() => mockTripRepository.getCurrentMember(any(),
+            forceRefresh: any(named: 'forceRefresh')))
+        .thenAnswer((_) async => const CurrentMemberModel(
+              tripMemberId: 'device-1',
+              displayName: 'Alice',
+              role: 'ORGANIZER',
+            ));
   });
 
   ExpensePage pageOf(List<Expense> expenses) => ExpensePage(
@@ -58,20 +65,21 @@ void main() {
   );
 
   Widget buildSheet(ExpenseBloc bloc) {
+    final memberCubit = CurrentMemberCubit(mockTripRepository, tripId)..load();
     return MaterialApp(
-      home: RepositoryProvider<DeviceIdService>.value(
-        value: mockDeviceIdService,
-        child: BlocProvider.value(
-          value: bloc,
-          child: Builder(
-            builder: (ctx) => TextButton(
-              onPressed: () => showAddExpenseSheet(
-                ctx,
-                tripId: tripId,
-                trip: sampleTrip,
-              ),
-              child: const Text('Open'),
+      home: MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: bloc),
+          BlocProvider.value(value: memberCubit),
+        ],
+        child: Builder(
+          builder: (ctx) => TextButton(
+            onPressed: () => showAddExpenseSheet(
+              ctx,
+              tripId: tripId,
+              trip: sampleTrip,
             ),
+            child: const Text('Open'),
           ),
         ),
       ),

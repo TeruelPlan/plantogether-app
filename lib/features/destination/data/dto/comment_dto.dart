@@ -9,6 +9,7 @@ class CommentDto {
   final String id;
   final String destinationId;
   final String authorDeviceId;
+  final String? authorMemberId;
   final String authorDisplayName;
   final String content;
   final DateTime createdAt;
@@ -17,6 +18,7 @@ class CommentDto {
     required this.id,
     required this.destinationId,
     required this.authorDeviceId,
+    this.authorMemberId,
     required this.authorDisplayName,
     required this.content,
     required this.createdAt,
@@ -31,6 +33,7 @@ class CommentDto {
         id: id,
         destinationId: destinationId,
         authorDeviceId: authorDeviceId,
+        authorMemberId: authorMemberId,
         authorDisplayName: authorDisplayName,
         content: content,
         createdAt: createdAt,

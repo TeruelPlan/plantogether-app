@@ -20,12 +20,14 @@ class DestinationsTab extends StatefulWidget {
   final String tripId;
   final bool isOrganizer;
   final String? myDisplayName;
+  final String? myMemberId;
 
   const DestinationsTab({
     super.key,
     required this.tripId,
     this.isOrganizer = false,
     this.myDisplayName,
+    this.myMemberId,
   });
 
   @override
@@ -130,6 +132,7 @@ class _DestinationsTabState extends State<DestinationsTab> {
                                 create: (_) => DestinationCommentBloc(
                                   repository,
                                   myDeviceId: myDeviceId,
+                                  myMemberId: widget.myMemberId,
                                   myDisplayName: widget.myDisplayName,
                                 ),
                                 child: DestinationProposalCard(

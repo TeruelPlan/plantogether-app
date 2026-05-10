@@ -9,6 +9,7 @@ import '../../domain/model/poll_model.dart';
 class DatePollMatrixWidget extends StatelessWidget {
   final PollDetailModel detail;
   final String myDeviceId;
+  final String? myMemberId;
   final bool isLocked;
   final bool isOrganizer;
   final bool locking;
@@ -19,6 +20,7 @@ class DatePollMatrixWidget extends StatelessWidget {
     super.key,
     required this.detail,
     required this.myDeviceId,
+    this.myMemberId,
     required this.isLocked,
     this.isOrganizer = false,
     this.locking = false,
@@ -58,6 +60,7 @@ class DatePollMatrixWidget extends StatelessWidget {
       slots: detail.slots,
       members: members,
       myDeviceId: myDeviceId,
+      myMemberId: myMemberId,
       isLocked: isLocked,
       isOrganizer: isOrganizer,
       locking: locking,
@@ -117,6 +120,7 @@ class _MatrixContent extends StatefulWidget {
   final List<PollSlotDetailModel> slots;
   final List<PollMemberModel> members;
   final String myDeviceId;
+  final String? myMemberId;
   final bool isLocked;
   final bool isOrganizer;
   final bool locking;
@@ -130,6 +134,7 @@ class _MatrixContent extends StatefulWidget {
     required this.slots,
     required this.members,
     required this.myDeviceId,
+    required this.myMemberId,
     required this.isLocked,
     required this.isOrganizer,
     required this.locking,
@@ -176,6 +181,7 @@ class _MatrixContentState extends State<_MatrixContent> {
           slot: slot,
           members: widget.members,
           myDeviceId: widget.myDeviceId,
+          myMemberId: widget.myMemberId,
           isLocked: widget.isLocked,
           isWinner: isWinner,
           label: DatePollMatrixWidget.formatSlotLabel(slot),
@@ -232,7 +238,7 @@ class _HeaderRow extends StatelessWidget {
                 child: Column(
                   children: [
                     MemberAvatar(
-                        deviceId: m.deviceId,
+                        seed: m.tripMemberId ?? m.deviceId,
                         displayName: m.displayName,
                         size: 32),
                     const SizedBox(height: 4),
@@ -264,6 +270,7 @@ class _SlotRow extends StatelessWidget {
   final PollSlotDetailModel slot;
   final List<PollMemberModel> members;
   final String myDeviceId;
+  final String? myMemberId;
   final bool isLocked;
   final bool isWinner;
   final String label;
@@ -276,6 +283,7 @@ class _SlotRow extends StatelessWidget {
     required this.slot,
     required this.members,
     required this.myDeviceId,
+    required this.myMemberId,
     required this.isLocked,
     required this.isWinner,
     required this.label,
@@ -295,6 +303,10 @@ class _SlotRow extends StatelessWidget {
     final votesByDevice = <String, VoteStatus>{
       for (final v in slot.votes) v.deviceId: v.status,
     };
+    final votesByMember = <String, VoteStatus>{
+      for (final v in slot.votes)
+        if (v.tripMemberId != null) v.tripMemberId!: v.status,
+    };
 
     return Container(
       decoration: decoration,
@@ -310,8 +322,13 @@ class _SlotRow extends StatelessWidget {
             ),
           ),
           ...members.map((m) {
-            final vote = votesByDevice[m.deviceId];
-            final isMe = m.deviceId == myDeviceId;
+            final vote = (m.tripMemberId != null
+                    ? votesByMember[m.tripMemberId!]
+                    : null) ??
+                votesByDevice[m.deviceId];
+            final isMe = (myMemberId != null && m.tripMemberId != null)
+                ? m.tripMemberId == myMemberId
+                : m.deviceId == myDeviceId;
             return Flexible(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),

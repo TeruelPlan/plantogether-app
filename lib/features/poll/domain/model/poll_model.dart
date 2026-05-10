@@ -33,6 +33,7 @@ abstract class PollModel with _$PollModel {
 abstract class PollVoteModel with _$PollVoteModel {
   const factory PollVoteModel({
     required String deviceId,
+    String? tripMemberId,
     required VoteStatus status,
   }) = _PollVoteModel;
 }
@@ -53,6 +54,7 @@ abstract class PollSlotDetailModel with _$PollSlotDetailModel {
 abstract class PollMemberModel with _$PollMemberModel {
   const factory PollMemberModel({
     required String deviceId,
+    String? tripMemberId,
     required String role,
     required String displayName,
   }) = _PollMemberModel;
@@ -67,6 +69,7 @@ abstract class PollDetailModel with _$PollDetailModel {
     required PollStatus status,
     String? lockedSlotId,
     required String createdBy,
+    String? createdByMemberId,
     required DateTime createdAt,
     @Default([]) List<PollSlotDetailModel> slots,
     @Default([]) List<PollMemberModel> members,
@@ -74,9 +77,9 @@ abstract class PollDetailModel with _$PollDetailModel {
 }
 
 extension PollSlotDetailModelX on PollSlotDetailModel {
-  VoteStatus? myVoteFor(String myDeviceId) {
+  VoteStatus? myVoteFor(String myMemberId) {
     for (final vote in votes) {
-      if (vote.deviceId == myDeviceId) return vote.status;
+      if (vote.tripMemberId == myMemberId) return vote.status;
     }
     return null;
   }

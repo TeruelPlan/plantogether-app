@@ -40,9 +40,10 @@ class _PollDetailPageState extends State<PollDetailPage> {
             initial: _buildSpinner,
             loading: _buildSpinner,
             error: (message) => _buildError(context, message),
-            loaded: (detail, myDeviceId, _, connectionBanner, _, locking) =>
-                _buildLoaded(
-                    context, detail, myDeviceId, connectionBanner, locking),
+            loaded: (detail, myDeviceId, myMemberId, _, connectionBanner, _,
+                    locking) =>
+                _buildLoaded(context, detail, myDeviceId, myMemberId,
+                    connectionBanner, locking),
           );
         },
       ),
@@ -51,7 +52,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
   void _handleBanners(BuildContext context, PollDetailState state) {
     state.whenOrNull(
-      loaded: (_, _, errorBanner, _, successBanner, _) {
+      loaded: (_, _, _, errorBanner, _, successBanner, _) {
         _surfaceErrorBanner(context, state, errorBanner);
         _surfaceSuccessBanner(context, state, successBanner);
       },
@@ -134,6 +135,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
       BuildContext context,
       PollDetailModel detail,
       String myDeviceId,
+      String? myMemberId,
       String? connectionBanner,
       bool locking) {
     final theme = Theme.of(context);
@@ -142,7 +144,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
         ? theme.colorScheme.onSurfaceVariant
         : theme.colorScheme.primary;
     final me = detail.members.firstWhere(
-      (m) => m.deviceId == myDeviceId,
+      (m) => myMemberId != null && m.tripMemberId != null
+          ? m.tripMemberId == myMemberId
+          : m.deviceId == myDeviceId,
       orElse: () => const PollMemberModel(
           deviceId: '', role: 'PARTICIPANT', displayName: ''),
     );
@@ -177,6 +181,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
           child: DatePollMatrixWidget(
             detail: detail,
             myDeviceId: myDeviceId,
+            myMemberId: myMemberId,
             isLocked: isLocked,
             isOrganizer: isOrganizer,
             locking: locking,

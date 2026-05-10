@@ -75,6 +75,7 @@ enum RateSource {
 sealed class ExpenseSplit with _$ExpenseSplit {
   const factory ExpenseSplit({
     required String deviceId,
+    String? memberId,
     required double shareAmount,
   }) = _ExpenseSplit;
 }
@@ -85,6 +86,7 @@ sealed class Expense with _$Expense {
     required String id,
     required String tripId,
     required String paidByDeviceId,
+    String? paidByMemberId,
     required double amount,
     required String currency,
     required ExpenseCategory category,

@@ -11,6 +11,7 @@ sealed class PollDetailState with _$PollDetailState {
   const factory PollDetailState.loaded({
     required PollDetailModel detail,
     required String myDeviceId,
+    String? myMemberId,
     String? errorBanner,
     String? connectionBanner,
     String? successBanner,

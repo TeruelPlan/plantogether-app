@@ -45,11 +45,13 @@ abstract class DestinationModel with _$DestinationModel {
     String? currency,
     String? externalUrl,
     required String proposedByDeviceId,
+    String? proposedByMemberId,
     required DateTime createdAt,
     required DateTime updatedAt,
     @Default(DestinationStatus.proposed) DestinationStatus status,
     DateTime? chosenAt,
     String? chosenByDeviceId,
+    String? chosenByMemberId,
     @Default(DestinationVotesModel()) DestinationVotesModel votes,
   }) = _DestinationModel;
 }

@@ -116,7 +116,7 @@ void main() {
         }));
       },
       verify: (bloc) {
-        final detail = bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
+        final detail = bloc.state.whenOrNull(loaded: (d, _, _, _, _, _, _) => d);
         expect(detail, isNotNull);
         final slotA = detail!.slots.firstWhere((s) => s.id == slotAId);
         expect(slotA.score, 2);
@@ -145,7 +145,7 @@ void main() {
       },
       verify: (bloc) {
         final slotA = bloc.state
-            .whenOrNull(loaded: (d, _, _, _, _, _) => d)!
+            .whenOrNull(loaded: (d, _, _, _, _, _, _) => d)!
             .slots
             .firstWhere((s) => s.id == slotAId);
         expect(slotA.score, 0);
@@ -167,7 +167,7 @@ void main() {
       },
       verify: (bloc) {
         final banner = bloc.state.whenOrNull(
-            loaded: (_, _, _, connectionBanner, _, _) => connectionBanner);
+            loaded: (_, _, _, _, connectionBanner, _, _) => connectionBanner);
         expect(banner, 'Reconnecting…');
       },
     );
@@ -198,14 +198,14 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       final detail =
-          bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
+          bloc.state.whenOrNull(loaded: (d, _, _, _, _, _, _) => d);
       final slotA = detail!.slots.firstWhere((s) => s.id == slotAId);
       final slotB = detail.slots.firstWhere((s) => s.id == slotBId);
       expect(slotA.score, 2,
           reason: 'slot A optimistic value preserved after slot B rollback');
       expect(slotB.score, 0, reason: 'slot B reverted');
       final banner =
-          bloc.state.whenOrNull(loaded: (_, _, e, _, _, _) => e);
+          bloc.state.whenOrNull(loaded: (_, _, _, e, _, _, _) => e);
       expect(banner, contains('Could not save vote for'));
 
       await bloc.close();
@@ -232,12 +232,12 @@ void main() {
       },
       wait: const Duration(milliseconds: 50),
       verify: (bloc) {
-        final detail = bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
+        final detail = bloc.state.whenOrNull(loaded: (d, _, _, _, _, _, _) => d);
         expect(detail, isNotNull);
         expect(detail!.status, PollStatus.locked);
         expect(detail.lockedSlotId, slotAId);
         final banner = bloc.state
-            .whenOrNull(loaded: (_, _, _, _, s, _) => s);
+            .whenOrNull(loaded: (_, _, _, _, _, s, _) => s);
         expect(banner, contains('Dates confirmed'));
       },
     );
@@ -263,7 +263,7 @@ void main() {
       wait: const Duration(milliseconds: 50),
       verify: (bloc) {
         final banner = bloc.state
-            .whenOrNull(loaded: (_, _, e, _, _, _) => e);
+            .whenOrNull(loaded: (_, _, _, e, _, _, _) => e);
         expect(banner, 'Poll is already locked');
       },
     );
@@ -289,7 +289,7 @@ void main() {
       wait: const Duration(milliseconds: 50),
       verify: (bloc) {
         final banner = bloc.state
-            .whenOrNull(loaded: (_, _, e, _, _, _) => e);
+            .whenOrNull(loaded: (_, _, _, e, _, _, _) => e);
         expect(banner, 'Only the organizer can lock this poll');
       },
     );
@@ -315,11 +315,11 @@ void main() {
       },
       verify: (bloc) {
         final detail =
-            bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
+            bloc.state.whenOrNull(loaded: (d, _, _, _, _, _, _) => d);
         expect(detail!.status, PollStatus.locked);
         expect(detail.lockedSlotId, slotAId);
         final banner = bloc.state
-            .whenOrNull(loaded: (_, _, _, _, s, _) => s);
+            .whenOrNull(loaded: (_, _, _, _, _, s, _) => s);
         expect(banner, contains('Dates confirmed'));
       },
     );
@@ -345,7 +345,7 @@ void main() {
       },
       verify: (bloc) {
         final detail =
-            bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
+            bloc.state.whenOrNull(loaded: (d, _, _, _, _, _, _) => d);
         expect(detail!.status, PollStatus.open);
         expect(detail.lockedSlotId, isNull);
       },

@@ -31,9 +31,14 @@ PollStatus _pollStatusFromWire(String raw) {
 @JsonSerializable()
 class PollVoteDto {
   final String deviceId;
+  final String? tripMemberId;
   final String status;
 
-  const PollVoteDto({required this.deviceId, required this.status});
+  const PollVoteDto({
+    required this.deviceId,
+    this.tripMemberId,
+    required this.status,
+  });
 
   factory PollVoteDto.fromJson(Map<String, dynamic> json) =>
       _$PollVoteDtoFromJson(json);
@@ -42,6 +47,7 @@ class PollVoteDto {
 
   PollVoteModel toDomain() => PollVoteModel(
         deviceId: deviceId,
+        tripMemberId: tripMemberId,
         status: _voteStatusFromWire(status),
       );
 }
@@ -82,11 +88,13 @@ class PollSlotDetailDto {
 @JsonSerializable()
 class PollMemberDto {
   final String deviceId;
+  final String? tripMemberId;
   final String role;
   final String displayName;
 
   const PollMemberDto({
     required this.deviceId,
+    this.tripMemberId,
     required this.role,
     required this.displayName,
   });
@@ -98,6 +106,7 @@ class PollMemberDto {
 
   PollMemberModel toDomain() => PollMemberModel(
         deviceId: deviceId,
+        tripMemberId: tripMemberId,
         role: role,
         displayName: displayName,
       );
@@ -111,6 +120,7 @@ class PollDetailDto {
   final String status;
   final String? lockedSlotId;
   final String createdBy;
+  final String? createdByMemberId;
   final DateTime createdAt;
   final List<PollSlotDetailDto>? slots;
   final List<PollMemberDto>? members;
@@ -122,6 +132,7 @@ class PollDetailDto {
     required this.status,
     this.lockedSlotId,
     required this.createdBy,
+    this.createdByMemberId,
     required this.createdAt,
     this.slots,
     this.members,
@@ -139,6 +150,7 @@ class PollDetailDto {
         status: _pollStatusFromWire(status),
         lockedSlotId: lockedSlotId,
         createdBy: createdBy,
+        createdByMemberId: createdByMemberId,
         createdAt: createdAt,
         slots: slots?.map((s) => s.toDomain()).toList() ?? const [],
         members: members?.map((m) => m.toDomain()).toList() ?? const [],

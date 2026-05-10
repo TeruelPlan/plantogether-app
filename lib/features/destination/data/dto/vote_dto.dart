@@ -17,11 +17,13 @@ class CastVoteRequestDto {
 @JsonSerializable()
 class VoteResponseDto {
   final String voterDeviceId;
+  final String? voterMemberId;
   final String destinationId;
   final int? rank;
 
   const VoteResponseDto({
     required this.voterDeviceId,
+    this.voterMemberId,
     required this.destinationId,
     this.rank,
   });

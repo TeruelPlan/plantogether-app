@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../trip/domain/model/trip_model.dart';
+import '../../../trip/presentation/bloc/current_member_cubit.dart';
 import '../bloc/expense_bloc.dart';
 import '../bloc/expense_event.dart';
 import '../bloc/expense_state.dart';
-import '../../../../core/security/device_id_service.dart';
 import '../widget/add_expense_sheet.dart';
 import '../widget/confirm_delete_dialog.dart';
 import '../widget/edit_expense_sheet.dart';
@@ -27,7 +27,6 @@ class ExpensesTab extends StatefulWidget {
 
 class _ExpensesTabState extends State<ExpensesTab> {
   bool _fabPressed = false;
-  String? _myDeviceId;
 
   @override
   void initState() {
@@ -37,12 +36,6 @@ class _ExpensesTabState extends State<ExpensesTab> {
       initial: () => bloc.add(LoadExpenses(widget.tripId)),
       orElse: () {},
     );
-    _resolveMyDeviceId();
-  }
-
-  Future<void> _resolveMyDeviceId() async {
-    final id = await context.read<DeviceIdService>().getOrCreateDeviceId();
-    if (mounted) setState(() => _myDeviceId = id);
   }
 
   bool get _isOrganizer {
@@ -51,9 +44,10 @@ class _ExpensesTabState extends State<ExpensesTab> {
     return role != null && role.toUpperCase() == 'ORGANIZER';
   }
 
-  bool _canModify(String paidByDeviceId) {
-    if (_myDeviceId == null) return false;
-    return paidByDeviceId == _myDeviceId || _isOrganizer;
+  bool _canModify(String? paidByMemberId, String? myMemberId) {
+    if (_isOrganizer) return true;
+    if (paidByMemberId == null || myMemberId == null) return false;
+    return paidByMemberId == myMemberId;
   }
 
   void _openEdit(BuildContext context, expense) {
@@ -82,9 +76,10 @@ class _ExpensesTabState extends State<ExpensesTab> {
     }
   }
 
-  String _resolveDisplayName(String deviceId) {
+  String _resolveDisplayName(String? paidByMemberId) {
+    if (paidByMemberId == null) return 'Unknown';
     final member = widget.trip.members
-        .where((m) => m.memberId == deviceId)
+        .where((m) => m.memberId == paidByMemberId)
         .firstOrNull;
     return member?.displayName ?? 'Unknown';
   }
@@ -193,19 +188,30 @@ class _ExpensesTabState extends State<ExpensesTab> {
 
   Widget _buildLoadedState(List expenses) {
     return Scaffold(
-      body: ListView.builder(
-        key: const ValueKey('expenses_list'),
-        itemCount: expenses.length,
-        itemBuilder: (context, index) {
-          final expense = expenses[index];
-          final canModify = _canModify(expense.paidByDeviceId);
-          return ExpenseCard(
-            expense: expense,
-            payerDisplayName: _resolveDisplayName(expense.paidByDeviceId),
-            canModify: canModify,
-            onEdit: canModify ? () => _openEdit(context, expense) : null,
-            onDelete:
-                canModify ? () => _confirmDelete(context, expense) : null,
+      body: BlocBuilder<CurrentMemberCubit, CurrentMemberState>(
+        builder: (context, memberState) {
+          final myMemberId = memberState is CurrentMemberLoaded
+              ? memberState.member.tripMemberId
+              : null;
+          return ListView.builder(
+            key: const ValueKey('expenses_list'),
+            itemCount: expenses.length,
+            itemBuilder: (context, index) {
+              final expense = expenses[index];
+              final canModify =
+                  _canModify(expense.paidByMemberId, myMemberId);
+              return ExpenseCard(
+                expense: expense,
+                payerDisplayName:
+                    _resolveDisplayName(expense.paidByMemberId),
+                canModify: canModify,
+                onEdit:
+                    canModify ? () => _openEdit(context, expense) : null,
+                onDelete: canModify
+                    ? () => _confirmDelete(context, expense)
+                    : null,
+              );
+            },
           );
         },
       ),
