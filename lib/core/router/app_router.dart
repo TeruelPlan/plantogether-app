@@ -173,7 +173,7 @@ class AppRouter {
             return BlocProvider(
               create: (ctx) => PollDetailBloc(
                 ctx.read<PollRepository>(),
-                ctx.read<DeviceIdService>(),
+                ctx.read<TripRepository>(),
                 ctx.read<StompClientManager>(),
               ),
               child: PollDetailPage(pollId: pollId),

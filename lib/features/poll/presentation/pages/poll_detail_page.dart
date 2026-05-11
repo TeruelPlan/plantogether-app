@@ -40,10 +40,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
             initial: _buildSpinner,
             loading: _buildSpinner,
             error: (message) => _buildError(context, message),
-            loaded: (detail, myDeviceId, myMemberId, _, connectionBanner, _,
-                    locking) =>
-                _buildLoaded(context, detail, myDeviceId, myMemberId,
-                    connectionBanner, locking),
+            loaded: (detail, myMemberId, _, connectionBanner, _, locking) =>
+                _buildLoaded(
+                    context, detail, myMemberId, connectionBanner, locking),
           );
         },
       ),
@@ -52,7 +51,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
 
   void _handleBanners(BuildContext context, PollDetailState state) {
     state.whenOrNull(
-      loaded: (_, _, _, errorBanner, _, successBanner, _) {
+      loaded: (_, _, errorBanner, _, successBanner, _) {
         _surfaceErrorBanner(context, state, errorBanner);
         _surfaceSuccessBanner(context, state, successBanner);
       },
@@ -134,8 +133,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
   Widget _buildLoaded(
       BuildContext context,
       PollDetailModel detail,
-      String myDeviceId,
-      String? myMemberId,
+      String myMemberId,
       String? connectionBanner,
       bool locking) {
     final theme = Theme.of(context);
@@ -144,11 +142,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
         ? theme.colorScheme.onSurfaceVariant
         : theme.colorScheme.primary;
     final me = detail.members.firstWhere(
-      (m) => myMemberId != null && m.tripMemberId != null
-          ? m.tripMemberId == myMemberId
-          : m.deviceId == myDeviceId,
+      (m) => m.tripMemberId == myMemberId,
       orElse: () => const PollMemberModel(
-          deviceId: '', role: 'PARTICIPANT', displayName: ''),
+          tripMemberId: '', role: 'PARTICIPANT', displayName: ''),
     );
     final isOrganizer = me.role == 'ORGANIZER';
 
@@ -180,7 +176,6 @@ class _PollDetailPageState extends State<PollDetailPage> {
         Expanded(
           child: DatePollMatrixWidget(
             detail: detail,
-            myDeviceId: myDeviceId,
             myMemberId: myMemberId,
             isLocked: isLocked,
             isOrganizer: isOrganizer,

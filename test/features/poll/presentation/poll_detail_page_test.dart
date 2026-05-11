@@ -5,16 +5,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:plantogether_app/core/network/stomp_client_manager.dart';
-import 'package:plantogether_app/core/security/device_id_service.dart';
 import 'package:plantogether_app/features/poll/domain/model/poll_model.dart';
 import 'package:plantogether_app/features/poll/domain/repository/poll_repository.dart';
 import 'package:plantogether_app/features/poll/presentation/bloc/poll_detail_bloc.dart';
 import 'package:plantogether_app/features/poll/presentation/pages/poll_detail_page.dart';
 import 'package:plantogether_app/features/poll/presentation/widgets/date_poll_matrix_widget.dart';
+import 'package:plantogether_app/features/trip/domain/model/current_member_model.dart';
+import 'package:plantogether_app/features/trip/domain/repository/trip_repository.dart';
 
 class MockPollRepository extends Mock implements PollRepository {}
 
-class MockDeviceIdService extends Mock implements DeviceIdService {}
+class MockTripRepository extends Mock implements TripRepository {}
 
 class FakeStompClientManager implements StompClientManager {
   @override
@@ -37,12 +38,12 @@ class _NoopSubscription implements TripStompSubscription {
 
 void main() {
   late MockPollRepository mockRepository;
-  late MockDeviceIdService mockDeviceIdService;
+  late MockTripRepository mockTripRepository;
   late FakeStompClientManager fakeStomp;
 
   const pollId = 'poll-1';
   const tripId = 'trip-1';
-  const myDeviceId = 'device-me';
+  const myMemberId = 'member-me';
   const slotId = 'slot-a';
 
   PollDetailModel buildDetail({
@@ -56,7 +57,7 @@ void main() {
       title: 'Summer?',
       status: status,
       lockedSlotId: lockedSlotId,
-      createdBy: 'organizer',
+      createdByMemberId: 'organizer',
       createdAt: DateTime.utc(2026, 4, 1),
       slots: [
         PollSlotDetailModel(
@@ -70,23 +71,28 @@ void main() {
       ],
       members: [
         PollMemberModel(
-            deviceId: myDeviceId, role: role, displayName: 'Me'),
+            tripMemberId: myMemberId, role: role, displayName: 'Me'),
       ],
     );
   }
 
   setUp(() {
     mockRepository = MockPollRepository();
-    mockDeviceIdService = MockDeviceIdService();
+    mockTripRepository = MockTripRepository();
     fakeStomp = FakeStompClientManager();
-    when(() => mockDeviceIdService.getOrCreateDeviceId())
-        .thenAnswer((_) async => myDeviceId);
+    when(() => mockTripRepository.getCurrentMember(any(),
+            forceRefresh: any(named: 'forceRefresh')))
+        .thenAnswer((_) async => const CurrentMemberModel(
+              tripMemberId: myMemberId,
+              displayName: 'Me',
+              role: 'PARTICIPANT',
+            ));
   });
 
   Widget buildPage() => MaterialApp(
         home: BlocProvider(
           create: (_) =>
-              PollDetailBloc(mockRepository, mockDeviceIdService, fakeStomp),
+              PollDetailBloc(mockRepository, mockTripRepository, fakeStomp),
           child: const PollDetailPage(pollId: pollId),
         ),
       );

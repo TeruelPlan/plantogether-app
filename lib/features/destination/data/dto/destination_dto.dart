@@ -41,13 +41,11 @@ class DestinationDto {
   final double? estimatedBudget;
   final String? currency;
   final String? externalUrl;
-  final String proposedByDeviceId;
-  final String? proposedByMemberId;
+  final String proposedByMemberId;
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? status;
   final DateTime? chosenAt;
-  final String? chosenByDeviceId;
   final String? chosenByMemberId;
   final DestinationVotesDto? votes;
 
@@ -60,13 +58,11 @@ class DestinationDto {
     this.estimatedBudget,
     this.currency,
     this.externalUrl,
-    required this.proposedByDeviceId,
-    this.proposedByMemberId,
+    required this.proposedByMemberId,
     required this.createdAt,
     required this.updatedAt,
     this.status,
     this.chosenAt,
-    this.chosenByDeviceId,
     this.chosenByMemberId,
     this.votes,
   });
@@ -85,13 +81,11 @@ class DestinationDto {
         estimatedBudget: estimatedBudget,
         currency: currency,
         externalUrl: externalUrl,
-        proposedByDeviceId: proposedByDeviceId,
         proposedByMemberId: proposedByMemberId,
         createdAt: createdAt,
         updatedAt: updatedAt,
         status: DestinationStatus.fromWire(status),
         chosenAt: chosenAt,
-        chosenByDeviceId: chosenByDeviceId,
         chosenByMemberId: chosenByMemberId,
         votes: votes?.toDomain() ?? const DestinationVotesModel(),
       );

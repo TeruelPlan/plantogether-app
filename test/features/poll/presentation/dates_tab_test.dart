@@ -23,7 +23,7 @@ void main() {
     tripId: tripId,
     title: 'When to leave?',
     status: PollStatus.open,
-    createdBy: 'device-1',
+    createdByMemberId: 'device-1',
     createdAt: DateTime.utc(2026, 4, 1),
     slots: [
       PollSlotModel(

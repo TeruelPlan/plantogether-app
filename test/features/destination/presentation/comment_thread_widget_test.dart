@@ -47,7 +47,7 @@ void main() {
         )).thenAnswer((_) async => CommentModel(
           id: 'srv-1',
           destinationId: 'd-1',
-          authorDeviceId: 'dev',
+          authorMemberId: 'dev',
           authorDisplayName: 'Alice',
           content: 'hi',
           createdAt: DateTime.utc(2026, 4, 25),
@@ -94,7 +94,7 @@ void main() {
       return CommentModel(
         id: 'srv-1',
         destinationId: 'd-1',
-        authorDeviceId: 'dev',
+        authorMemberId: 'dev',
         authorDisplayName: 'Alice',
         content: 'hi',
         createdAt: DateTime.utc(2026, 4, 25),
@@ -129,7 +129,7 @@ void main() {
           CommentModel(
             id: 'c-1',
             destinationId: 'd-1',
-            authorDeviceId: 'dev',
+            authorMemberId: 'dev',
             authorDisplayName: 'Alice',
             content: 'great',
             createdAt: DateTime.utc(2026, 4, 25, 10),

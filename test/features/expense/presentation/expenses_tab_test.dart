@@ -77,7 +77,7 @@ void main() {
   final sampleExpense = Expense(
     id: 'exp-1',
     tripId: tripId,
-    paidByDeviceId: 'device-1',
+    paidByMemberId: 'device-1',
     amount: 42.0,
     currency: 'EUR',
     category: ExpenseCategory.food,

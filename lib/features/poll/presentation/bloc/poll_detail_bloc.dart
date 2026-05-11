@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/network/stomp_client_manager.dart';
-import '../../../../core/security/device_id_service.dart';
+import '../../../trip/domain/repository/trip_repository.dart';
 import '../../domain/model/poll_model.dart';
 import '../../domain/repository/poll_repository.dart';
 import '../widgets/date_poll_matrix_widget.dart';
@@ -18,7 +18,7 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
   static final DateFormat _dateLabelFormat = DateFormat('MMM d');
 
   final PollRepository _repository;
-  final DeviceIdService _deviceIdService;
+  final TripRepository _tripRepository;
   final StompClientManager _stompClientManager;
 
   String? _pollId;
@@ -28,7 +28,7 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
 
   PollDetailBloc(
     this._repository,
-    this._deviceIdService,
+    this._tripRepository,
     this._stompClientManager,
   ) : super(const PollDetailState.initial()) {
     on<LoadPollDetail>(_onLoadPollDetail, transformer: droppable());
@@ -63,15 +63,11 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
     try {
       _pollId = event.pollId;
       final detail = await _repository.getPollDetail(event.pollId);
-      final myDeviceId = await _deviceIdService.getOrCreateDeviceId();
-      final myMemberId = detail.members
-          .where((m) => m.deviceId == myDeviceId)
-          .map((m) => m.tripMemberId)
-          .firstWhere((id) => id != null, orElse: () => null);
+      final currentMember =
+          await _tripRepository.getCurrentMember(detail.tripId);
       emit(PollDetailState.loaded(
         detail: detail,
-        myDeviceId: myDeviceId,
-        myMemberId: myMemberId,
+        myMemberId: currentMember.tripMemberId,
       ));
       await _ensureStompSubscription(detail.tripId);
     } catch (e) {
@@ -111,12 +107,11 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
     }
 
     final slotId = payload['slotId'] as String?;
-    final remoteDeviceId = payload['deviceId'] as String?;
     final remoteMemberId = payload['tripMemberId'] as String?;
     final statusRaw = payload['status'] as String?;
     final newSlotScore = (payload['newSlotScore'] as num?)?.toInt();
     if (slotId == null ||
-        remoteDeviceId == null ||
+        remoteMemberId == null ||
         statusRaw == null ||
         newSlotScore == null) {
       return;
@@ -125,10 +120,7 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
     final remoteStatus = _voteStatusFromWire(statusRaw);
     if (remoteStatus == null) return;
 
-    // Prefer member-id identity check, fall back to deviceId for legacy frames.
-    final isOwnEcho = remoteMemberId != null && loaded.myMemberId != null
-        ? remoteMemberId == loaded.myMemberId
-        : remoteDeviceId == loaded.myDeviceId;
+    final isOwnEcho = remoteMemberId == loaded.myMemberId;
     PollSlotDetailModel? affectedSlot;
     for (final s in loaded.detail.slots) {
       if (s.id == slotId) {
@@ -144,16 +136,11 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
 
     final updatedSlots = loaded.detail.slots.map((slot) {
       if (slot.id != slotId) return slot;
-      final withoutVoter = slot.votes.where((v) {
-        if (remoteMemberId != null && v.tripMemberId != null) {
-          return v.tripMemberId != remoteMemberId;
-        }
-        return v.deviceId != remoteDeviceId;
-      }).toList();
+      final withoutVoter =
+          slot.votes.where((v) => v.tripMemberId != remoteMemberId).toList();
       final updatedVotes = [
         ...withoutVoter,
         PollVoteModel(
-          deviceId: remoteDeviceId,
           tripMemberId: remoteMemberId,
           status: remoteStatus,
         ),
@@ -238,7 +225,6 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
     final optimistic = _applyOptimisticVote(
       loaded.detail,
       slotId: event.slotId,
-      myDeviceId: loaded.myDeviceId,
       myMemberId: loaded.myMemberId,
       status: event.status,
     );
@@ -381,22 +367,16 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
   PollDetailModel _applyOptimisticVote(
     PollDetailModel detail, {
     required String slotId,
-    required String myDeviceId,
-    String? myMemberId,
+    required String myMemberId,
     required VoteStatus status,
   }) {
     final updatedSlots = detail.slots.map((slot) {
       if (slot.id != slotId) return slot;
-      final withoutMine = slot.votes.where((v) {
-        if (myMemberId != null && v.tripMemberId != null) {
-          return v.tripMemberId != myMemberId;
-        }
-        return v.deviceId != myDeviceId;
-      }).toList();
+      final withoutMine =
+          slot.votes.where((v) => v.tripMemberId != myMemberId).toList();
       final updatedVotes = [
         ...withoutMine,
         PollVoteModel(
-          deviceId: myDeviceId,
           tripMemberId: myMemberId,
           status: status,
         ),
@@ -429,11 +409,10 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
 
   _LoadedSnapshot? _currentLoaded() {
     return state.whenOrNull(
-      loaded: (detail, myDeviceId, myMemberId, errorBanner, connectionBanner,
+      loaded: (detail, myMemberId, errorBanner, connectionBanner,
               successBanner, locking) =>
           _LoadedSnapshot(
         detail: detail,
-        myDeviceId: myDeviceId,
         myMemberId: myMemberId,
         errorBanner: errorBanner,
         connectionBanner: connectionBanner,
@@ -453,8 +432,7 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
 
 class _LoadedSnapshot {
   final PollDetailModel detail;
-  final String myDeviceId;
-  final String? myMemberId;
+  final String myMemberId;
   final String? errorBanner;
   final String? connectionBanner;
   final String? successBanner;
@@ -462,8 +440,7 @@ class _LoadedSnapshot {
 
   const _LoadedSnapshot({
     required this.detail,
-    required this.myDeviceId,
-    this.myMemberId,
+    required this.myMemberId,
     this.errorBanner,
     this.connectionBanner,
     this.successBanner,
@@ -482,7 +459,6 @@ class _LoadedSnapshot {
   }) {
     return PollDetailState.loaded(
       detail: detail ?? this.detail,
-      myDeviceId: myDeviceId,
       myMemberId: myMemberId,
       errorBanner: clearErrorBanner ? null : (errorBanner ?? this.errorBanner),
       connectionBanner:

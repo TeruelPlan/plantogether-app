@@ -29,7 +29,7 @@ void main() {
     tripId: tripId,
     title: 'Summer trip',
     status: PollStatus.open,
-    createdBy: 'device-1',
+    createdByMemberId: 'device-1',
     createdAt: DateTime.utc(2026, 4, 1),
     slots: [
       PollSlotModel(

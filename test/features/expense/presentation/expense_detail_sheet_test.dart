@@ -10,7 +10,7 @@ void main() {
     final expense = Expense(
       id: 'exp-detail-1',
       tripId: 'trip-1',
-      paidByDeviceId: 'dev-1',
+      paidByMemberId: 'dev-1',
       amount: 42.0,
       currency: 'USD',
       category: ExpenseCategory.food,

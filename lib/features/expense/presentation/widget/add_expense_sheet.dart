@@ -119,7 +119,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
             category: _category,
             description: _descriptionController.text.trim(),
             splitMode: SplitMode.equal,
-            paidByDeviceId: _payerMemberId,
+            paidByMemberId: _payerMemberId,
           ),
         ));
   }

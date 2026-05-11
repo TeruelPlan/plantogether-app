@@ -8,14 +8,12 @@ part 'vote_response_dto.g.dart';
 class VoteResponseDto {
   final String slotId;
   final String status;
-  final String deviceId;
-  final String? tripMemberId;
+  final String tripMemberId;
 
   const VoteResponseDto({
     required this.slotId,
     required this.status,
-    required this.deviceId,
-    this.tripMemberId,
+    required this.tripMemberId,
   });
 
   factory VoteResponseDto.fromJson(Map<String, dynamic> json) =>
@@ -31,7 +29,6 @@ class VoteResponseDto {
       _ => throw ArgumentError('Unknown VoteStatus: $status'),
     };
     return PollVoteModel(
-      deviceId: deviceId,
       tripMemberId: tripMemberId,
       status: voteStatus,
     );

@@ -3,28 +3,29 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:plantogether_app/core/network/stomp_client_manager.dart';
-import 'package:plantogether_app/core/security/device_id_service.dart';
 import 'package:plantogether_app/features/poll/domain/model/poll_model.dart';
 import 'package:plantogether_app/features/poll/domain/repository/poll_repository.dart';
 import 'package:plantogether_app/features/poll/presentation/bloc/poll_detail_bloc.dart';
 import 'package:plantogether_app/features/poll/presentation/bloc/poll_detail_event.dart';
 import 'package:plantogether_app/features/poll/presentation/bloc/poll_detail_state.dart';
+import 'package:plantogether_app/features/trip/domain/model/current_member_model.dart';
+import 'package:plantogether_app/features/trip/domain/repository/trip_repository.dart';
 
 import '../../../helpers/fake_stomp_client_manager.dart';
 
 class MockPollRepository extends Mock implements PollRepository {}
 
-class MockDeviceIdService extends Mock implements DeviceIdService {}
+class MockTripRepository extends Mock implements TripRepository {}
 
 void main() {
   late MockPollRepository mockRepository;
-  late MockDeviceIdService mockDeviceIdService;
+  late MockTripRepository mockTripRepository;
   late FakeStompClientManager fakeStomp;
 
   const pollId = 'poll-1';
   const tripId = 'trip-1';
-  const myDeviceId = 'device-me';
-  const otherDeviceId = 'device-other';
+  const myMemberId = 'member-me';
+  const otherMemberId = 'member-other';
   const slotAId = 'slot-a';
   const slotBId = 'slot-b';
 
@@ -39,7 +40,7 @@ void main() {
       tripId: tripId,
       title: 'When?',
       status: PollStatus.open,
-      createdBy: 'organizer',
+      createdByMemberId: 'organizer',
       createdAt: DateTime.utc(2026, 4, 1),
       slots: [
         PollSlotDetailModel(
@@ -61,9 +62,11 @@ void main() {
       ],
       members: const [
         PollMemberModel(
-            deviceId: myDeviceId, role: 'PARTICIPANT', displayName: 'Me'),
+            tripMemberId: myMemberId,
+            role: 'PARTICIPANT',
+            displayName: 'Me'),
         PollMemberModel(
-            deviceId: otherDeviceId,
+            tripMemberId: otherMemberId,
             role: 'PARTICIPANT',
             displayName: 'Other'),
       ],
@@ -72,14 +75,19 @@ void main() {
 
   setUp(() {
     mockRepository = MockPollRepository();
-    mockDeviceIdService = MockDeviceIdService();
+    mockTripRepository = MockTripRepository();
     fakeStomp = FakeStompClientManager();
-    when(() => mockDeviceIdService.getOrCreateDeviceId())
-        .thenAnswer((_) async => myDeviceId);
+    when(() => mockTripRepository.getCurrentMember(any(),
+            forceRefresh: any(named: 'forceRefresh')))
+        .thenAnswer((_) async => const CurrentMemberModel(
+              tripMemberId: myMemberId,
+              displayName: 'Me',
+              role: 'PARTICIPANT',
+            ));
   });
 
-  PollDetailBloc buildBloc() => PollDetailBloc(
-      mockRepository, mockDeviceIdService, fakeStomp);
+  PollDetailBloc buildBloc() =>
+      PollDetailBloc(mockRepository, mockTripRepository, fakeStomp);
 
   group('PollDetailBloc', () {
     blocTest<PollDetailBloc, PollDetailState>(
@@ -92,7 +100,8 @@ void main() {
       act: (bloc) => bloc.add(const LoadPollDetail(pollId)),
       expect: () => [
         const PollDetailState.loading(),
-        PollDetailState.loaded(detail: sampleDetail(), myDeviceId: myDeviceId),
+        PollDetailState.loaded(
+            detail: sampleDetail(), myMemberId: myMemberId),
       ],
     );
 
@@ -110,17 +119,18 @@ void main() {
           'type': 'POLL_VOTE_CAST',
           'pollId': pollId,
           'slotId': slotAId,
-          'deviceId': otherDeviceId,
+          'tripMemberId': otherMemberId,
           'status': 'YES',
           'newSlotScore': 2,
         }));
       },
       verify: (bloc) {
-        final detail = bloc.state.whenOrNull(loaded: (d, _, _, _, _, _, _) => d);
+        final detail = bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
         expect(detail, isNotNull);
         final slotA = detail!.slots.firstWhere((s) => s.id == slotAId);
         expect(slotA.score, 2);
-        expect(slotA.votes.any((v) => v.deviceId == otherDeviceId), isTrue);
+        expect(slotA.votes.any((v) => v.tripMemberId == otherMemberId),
+            isTrue);
       },
     );
 
@@ -138,14 +148,14 @@ void main() {
           'type': 'POLL_VOTE_CAST',
           'pollId': 'other-poll',
           'slotId': slotAId,
-          'deviceId': otherDeviceId,
+          'tripMemberId': otherMemberId,
           'status': 'YES',
           'newSlotScore': 2,
         }));
       },
       verify: (bloc) {
         final slotA = bloc.state
-            .whenOrNull(loaded: (d, _, _, _, _, _, _) => d)!
+            .whenOrNull(loaded: (d, _, _, _, _, _) => d)!
             .slots
             .firstWhere((s) => s.id == slotAId);
         expect(slotA.score, 0);
@@ -163,11 +173,12 @@ void main() {
       act: (bloc) async {
         bloc.add(const LoadPollDetail(pollId));
         await Future<void>.delayed(const Duration(milliseconds: 20));
-        bloc.add(const ConnectionStateChanged(StompConnectionState.reconnecting));
+        bloc.add(
+            const ConnectionStateChanged(StompConnectionState.reconnecting));
       },
       verify: (bloc) {
         final banner = bloc.state.whenOrNull(
-            loaded: (_, _, _, _, connectionBanner, _, _) => connectionBanner);
+            loaded: (_, _, _, connectionBanner, _, _) => connectionBanner);
         expect(banner, 'Reconnecting…');
       },
     );
@@ -182,7 +193,7 @@ void main() {
             slotId: slotAId,
             status: VoteStatus.yes,
           )).thenAnswer((_) async => const PollVoteModel(
-          deviceId: myDeviceId, status: VoteStatus.yes));
+          tripMemberId: myMemberId, status: VoteStatus.yes));
       when(() => mockRepository.respond(
             pollId: pollId,
             slotId: slotBId,
@@ -198,14 +209,14 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       final detail =
-          bloc.state.whenOrNull(loaded: (d, _, _, _, _, _, _) => d);
+          bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
       final slotA = detail!.slots.firstWhere((s) => s.id == slotAId);
       final slotB = detail.slots.firstWhere((s) => s.id == slotBId);
       expect(slotA.score, 2,
           reason: 'slot A optimistic value preserved after slot B rollback');
       expect(slotB.score, 0, reason: 'slot B reverted');
       final banner =
-          bloc.state.whenOrNull(loaded: (_, _, _, e, _, _, _) => e);
+          bloc.state.whenOrNull(loaded: (_, _, e, _, _, _) => e);
       expect(banner, contains('Could not save vote for'));
 
       await bloc.close();
@@ -232,12 +243,12 @@ void main() {
       },
       wait: const Duration(milliseconds: 50),
       verify: (bloc) {
-        final detail = bloc.state.whenOrNull(loaded: (d, _, _, _, _, _, _) => d);
+        final detail = bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
         expect(detail, isNotNull);
         expect(detail!.status, PollStatus.locked);
         expect(detail.lockedSlotId, slotAId);
-        final banner = bloc.state
-            .whenOrNull(loaded: (_, _, _, _, _, s, _) => s);
+        final banner =
+            bloc.state.whenOrNull(loaded: (_, _, _, _, s, _) => s);
         expect(banner, contains('Dates confirmed'));
       },
     );
@@ -262,8 +273,8 @@ void main() {
       },
       wait: const Duration(milliseconds: 50),
       verify: (bloc) {
-        final banner = bloc.state
-            .whenOrNull(loaded: (_, _, _, e, _, _, _) => e);
+        final banner =
+            bloc.state.whenOrNull(loaded: (_, _, e, _, _, _) => e);
         expect(banner, 'Poll is already locked');
       },
     );
@@ -288,8 +299,8 @@ void main() {
       },
       wait: const Duration(milliseconds: 50),
       verify: (bloc) {
-        final banner = bloc.state
-            .whenOrNull(loaded: (_, _, _, e, _, _, _) => e);
+        final banner =
+            bloc.state.whenOrNull(loaded: (_, _, e, _, _, _) => e);
         expect(banner, 'Only the organizer can lock this poll');
       },
     );
@@ -315,11 +326,11 @@ void main() {
       },
       verify: (bloc) {
         final detail =
-            bloc.state.whenOrNull(loaded: (d, _, _, _, _, _, _) => d);
+            bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
         expect(detail!.status, PollStatus.locked);
         expect(detail.lockedSlotId, slotAId);
-        final banner = bloc.state
-            .whenOrNull(loaded: (_, _, _, _, _, s, _) => s);
+        final banner =
+            bloc.state.whenOrNull(loaded: (_, _, _, _, s, _) => s);
         expect(banner, contains('Dates confirmed'));
       },
     );
@@ -345,7 +356,7 @@ void main() {
       },
       verify: (bloc) {
         final detail =
-            bloc.state.whenOrNull(loaded: (d, _, _, _, _, _, _) => d);
+            bloc.state.whenOrNull(loaded: (d, _, _, _, _, _) => d);
         expect(detail!.status, PollStatus.open);
         expect(detail.lockedSlotId, isNull);
       },

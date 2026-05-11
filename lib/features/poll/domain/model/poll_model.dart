@@ -23,7 +23,7 @@ abstract class PollModel with _$PollModel {
     required String tripId,
     required String title,
     required PollStatus status,
-    required String createdBy,
+    required String createdByMemberId,
     required DateTime createdAt,
     @Default([]) List<PollSlotModel> slots,
   }) = _PollModel;
@@ -32,8 +32,7 @@ abstract class PollModel with _$PollModel {
 @freezed
 abstract class PollVoteModel with _$PollVoteModel {
   const factory PollVoteModel({
-    required String deviceId,
-    String? tripMemberId,
+    required String tripMemberId,
     required VoteStatus status,
   }) = _PollVoteModel;
 }
@@ -53,8 +52,7 @@ abstract class PollSlotDetailModel with _$PollSlotDetailModel {
 @freezed
 abstract class PollMemberModel with _$PollMemberModel {
   const factory PollMemberModel({
-    required String deviceId,
-    String? tripMemberId,
+    required String tripMemberId,
     required String role,
     required String displayName,
   }) = _PollMemberModel;
@@ -68,8 +66,7 @@ abstract class PollDetailModel with _$PollDetailModel {
     required String title,
     required PollStatus status,
     String? lockedSlotId,
-    required String createdBy,
-    String? createdByMemberId,
+    required String createdByMemberId,
     required DateTime createdAt,
     @Default([]) List<PollSlotDetailModel> slots,
     @Default([]) List<PollMemberModel> members,

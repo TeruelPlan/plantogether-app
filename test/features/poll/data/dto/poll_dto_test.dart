@@ -9,7 +9,7 @@ void main() {
         'tripId': 'trip-1',
         'title': 'When to leave?',
         'status': 'OPEN',
-        'createdBy': 'device-1',
+        'createdByMemberId': 'member-1',
         'createdAt': '2026-04-01T09:15:00.000Z',
         'slots': [
           {
@@ -43,7 +43,7 @@ void main() {
         'tripId': 'trip-1',
         'title': 'Empty',
         'status': 'LOCKED',
-        'createdBy': 'device-1',
+        'createdByMemberId': 'member-1',
         'createdAt': '2026-04-01T09:15:00.000Z',
       };
 

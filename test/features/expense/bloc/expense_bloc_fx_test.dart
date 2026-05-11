@@ -27,7 +27,7 @@ void main() {
     return Expense(
       id: 'exp-fx-1',
       tripId: tripId,
-      paidByDeviceId: 'device-1',
+      paidByMemberId: 'device-1',
       amount: 42.0,
       currency: 'USD',
       category: ExpenseCategory.food,

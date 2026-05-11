@@ -7,7 +7,7 @@ DestinationModel _dest(String id, DestinationVotesModel votes) => DestinationMod
       id: id,
       tripId: 'trip-1',
       name: id,
-      proposedByDeviceId: 'device-1',
+      proposedByMemberId: 'device-1',
       createdAt: DateTime.utc(2026, 4, 1),
       updatedAt: DateTime.utc(2026, 4, 1),
       votes: votes,

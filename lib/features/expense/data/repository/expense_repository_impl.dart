@@ -22,11 +22,11 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
         splitMode: input.splitMode.toWire(),
         splits: input.splits
             ?.map((s) => SplitInputDto(
-                  deviceId: s.deviceId,
+                  memberId: s.memberId,
                   shareAmount: s.shareAmount,
                 ))
             .toList(),
-        paidBy: input.paidByDeviceId,
+        paidByMemberId: input.paidByMemberId,
       );
       final dto = await _remoteDatasource.record(tripId, body);
       return dto.toDomain();
@@ -66,7 +66,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
         splitMode: input.splitMode.toWire(),
         splits: input.splits
             ?.map((s) => SplitInputDto(
-                  deviceId: s.deviceId,
+                  memberId: s.memberId,
                   shareAmount: s.shareAmount,
                 ))
             .toList(),

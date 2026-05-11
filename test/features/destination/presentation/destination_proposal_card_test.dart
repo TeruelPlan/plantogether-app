@@ -8,7 +8,7 @@ void main() {
     id: 'd-1',
     tripId: 'trip-1',
     name: 'Lisbon',
-    proposedByDeviceId: 'device-1',
+    proposedByMemberId: 'device-1',
     createdAt: DateTime.utc(2026, 4, 1),
     updatedAt: DateTime.utc(2026, 4, 1),
   );
@@ -28,7 +28,7 @@ void main() {
     final chosen = baseDestination.copyWith(
       status: DestinationStatus.chosen,
       chosenAt: DateTime.utc(2026, 4, 2),
-      chosenByDeviceId: 'device-1',
+      chosenByMemberId: 'device-1',
     );
 
     await tester.pumpWidget(buildCard(chosen));

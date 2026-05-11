@@ -131,7 +131,6 @@ class _DestinationsTabState extends State<DestinationsTab> {
                                 key: ValueKey('destination_card_${d.id}'),
                                 create: (_) => DestinationCommentBloc(
                                   repository,
-                                  myDeviceId: myDeviceId,
                                   myMemberId: widget.myMemberId,
                                   myDisplayName: widget.myDisplayName,
                                 ),

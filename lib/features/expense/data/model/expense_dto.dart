@@ -6,13 +6,11 @@ part 'expense_dto.g.dart';
 
 @JsonSerializable()
 class ExpenseSplitDto {
-  final String deviceId;
-  final String? memberId;
+  final String memberId;
   final double shareAmount;
 
   const ExpenseSplitDto({
-    required this.deviceId,
-    this.memberId,
+    required this.memberId,
     required this.shareAmount,
   });
 
@@ -22,7 +20,6 @@ class ExpenseSplitDto {
   Map<String, dynamic> toJson() => _$ExpenseSplitDtoToJson(this);
 
   ExpenseSplit toDomain() => ExpenseSplit(
-        deviceId: deviceId,
         memberId: memberId,
         shareAmount: shareAmount,
       );
@@ -32,8 +29,7 @@ class ExpenseSplitDto {
 class ExpenseDto {
   final String id;
   final String tripId;
-  final String paidByDeviceId;
-  final String? paidByMemberId;
+  final String paidByMemberId;
   final double amount;
   final String currency;
   final String category;
@@ -54,8 +50,7 @@ class ExpenseDto {
   const ExpenseDto({
     required this.id,
     required this.tripId,
-    required this.paidByDeviceId,
-    this.paidByMemberId,
+    required this.paidByMemberId,
     required this.amount,
     required this.currency,
     required this.category,
@@ -80,7 +75,6 @@ class ExpenseDto {
   Expense toDomain() => Expense(
         id: id,
         tripId: tripId,
-        paidByDeviceId: paidByDeviceId,
         paidByMemberId: paidByMemberId,
         amount: amount,
         currency: currency,
@@ -110,7 +104,7 @@ class RecordExpenseRequestDto {
   final String? receiptKey;
   final String splitMode;
   final List<SplitInputDto>? splits;
-  final String? paidBy;
+  final String? paidByMemberId;
 
   const RecordExpenseRequestDto({
     required this.amount,
@@ -120,7 +114,7 @@ class RecordExpenseRequestDto {
     this.receiptKey,
     required this.splitMode,
     this.splits,
-    this.paidBy,
+    this.paidByMemberId,
   });
 
   factory RecordExpenseRequestDto.fromJson(Map<String, dynamic> json) =>
@@ -157,13 +151,11 @@ class UpdateExpenseRequestDto {
 
 @JsonSerializable()
 class SplitInputDto {
-  final String deviceId;
-  final String? memberId;
+  final String memberId;
   final double shareAmount;
 
   const SplitInputDto({
-    required this.deviceId,
-    this.memberId,
+    required this.memberId,
     required this.shareAmount,
   });
 

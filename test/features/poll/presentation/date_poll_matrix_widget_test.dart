@@ -4,8 +4,8 @@ import 'package:plantogether_app/features/poll/domain/model/poll_model.dart';
 import 'package:plantogether_app/features/poll/presentation/widgets/date_poll_matrix_widget.dart';
 
 void main() {
-  const myDeviceId = 'device-me';
-  const otherDeviceId = 'device-other';
+  const myMemberId = 'member-me';
+  const otherMemberId = 'member-other';
 
   PollDetailModel buildDetail({
     PollStatus status = PollStatus.open,
@@ -17,7 +17,7 @@ void main() {
       tripId: 'trip-1',
       title: 'When?',
       status: status,
-      createdBy: 'organizer',
+      createdByMemberId: 'organizer',
       createdAt: DateTime.utc(2026, 4, 1),
       slots: slots ??
           [
@@ -28,7 +28,7 @@ void main() {
               slotIndex: 0,
               score: 2,
               votes: const [
-                PollVoteModel(deviceId: myDeviceId, status: VoteStatus.yes),
+                PollVoteModel(tripMemberId: myMemberId, status: VoteStatus.yes),
               ],
             ),
             PollSlotDetailModel(
@@ -39,16 +39,16 @@ void main() {
               score: 1,
               votes: const [
                 PollVoteModel(
-                    deviceId: otherDeviceId, status: VoteStatus.maybe),
+                    tripMemberId: otherMemberId, status: VoteStatus.maybe),
               ],
             ),
           ],
       members: members ??
           const [
             PollMemberModel(
-                deviceId: myDeviceId, role: 'PARTICIPANT', displayName: 'Me'),
+                tripMemberId: myMemberId, role: 'PARTICIPANT', displayName: 'Me'),
             PollMemberModel(
-                deviceId: otherDeviceId,
+                tripMemberId: otherMemberId,
                 role: 'PARTICIPANT',
                 displayName: 'Other'),
           ],
@@ -67,7 +67,7 @@ void main() {
       home: Scaffold(
         body: DatePollMatrixWidget(
           detail: detail,
-          myDeviceId: myDeviceId,
+          myMemberId: myMemberId,
           isLocked: isLocked,
           isOrganizer: isOrganizer,
           locking: locking,

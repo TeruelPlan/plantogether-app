@@ -7,8 +7,7 @@ abstract class CommentModel with _$CommentModel {
   const factory CommentModel({
     required String id,
     required String destinationId,
-    required String authorDeviceId,
-    String? authorMemberId,
+    required String authorMemberId,
     required String authorDisplayName,
     required String content,
     required DateTime createdAt,

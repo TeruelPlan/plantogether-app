@@ -21,7 +21,7 @@ DestinationModel _buildDestination({int totalVotes = 0}) {
     id: 'd1',
     tripId: 't1',
     name: 'Paris',
-    proposedByDeviceId: 'dev',
+    proposedByMemberId: 'dev',
     createdAt: DateTime.utc(2026, 4, 1),
     updatedAt: DateTime.utc(2026, 4, 1),
     votes: DestinationVotesModel(totalVotes: totalVotes),

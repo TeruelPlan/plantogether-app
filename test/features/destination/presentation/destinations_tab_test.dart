@@ -35,7 +35,7 @@ void main() {
     tripId: tripId,
     name: 'Paris',
     description: 'City of lights',
-    proposedByDeviceId: 'device-1',
+    proposedByMemberId: 'device-1',
     createdAt: DateTime.utc(2026, 4, 1),
     updatedAt: DateTime.utc(2026, 4, 1),
   );
@@ -100,7 +100,7 @@ void main() {
       id: 'w',
       tripId: tripId,
       name: 'Winner',
-      proposedByDeviceId: 'd1',
+      proposedByMemberId: 'd1',
       createdAt: DateTime.utc(2026, 4, 1),
       updatedAt: DateTime.utc(2026, 4, 1),
       votes: const DestinationVotesModel(totalVotes: 3),
@@ -109,7 +109,7 @@ void main() {
       id: 'l',
       tripId: tripId,
       name: 'Loser',
-      proposedByDeviceId: 'd1',
+      proposedByMemberId: 'd1',
       createdAt: DateTime.utc(2026, 4, 1),
       updatedAt: DateTime.utc(2026, 4, 1),
       votes: const DestinationVotesModel(totalVotes: 1),
@@ -131,12 +131,12 @@ void main() {
       id: 'c',
       tripId: tripId,
       name: 'Lisbon',
-      proposedByDeviceId: 'device-1',
+      proposedByMemberId: 'device-1',
       createdAt: DateTime.utc(2026, 4, 1),
       updatedAt: DateTime.utc(2026, 4, 1),
       status: DestinationStatus.chosen,
       chosenAt: DateTime.utc(2026, 4, 2),
-      chosenByDeviceId: 'device-1',
+      chosenByMemberId: 'device-1',
     );
     when(() => mockRepository.list(tripId))
         .thenAnswer((_) async => [chosen]);
@@ -155,12 +155,12 @@ void main() {
       id: 'c',
       tripId: tripId,
       name: 'Lisbon',
-      proposedByDeviceId: 'device-1',
+      proposedByMemberId: 'device-1',
       createdAt: DateTime.utc(2026, 4, 1),
       updatedAt: DateTime.utc(2026, 4, 1),
       status: DestinationStatus.chosen,
       chosenAt: DateTime.utc(2026, 4, 2),
-      chosenByDeviceId: 'device-1',
+      chosenByMemberId: 'device-1',
     );
     when(() => mockRepository.list(tripId))
         .thenAnswer((_) async => [chosen]);

@@ -37,8 +37,7 @@ class PollDto {
   final String tripId;
   final String title;
   final String status;
-  final String createdBy;
-  final String? createdByMemberId;
+  final String createdByMemberId;
   final DateTime createdAt;
   final List<PollSlotDto>? slots;
 
@@ -47,8 +46,7 @@ class PollDto {
     required this.tripId,
     required this.title,
     required this.status,
-    required this.createdBy,
-    this.createdByMemberId,
+    required this.createdByMemberId,
     required this.createdAt,
     this.slots,
   });
@@ -65,7 +63,7 @@ class PollDto {
         status: status.toUpperCase() == 'LOCKED'
             ? PollStatus.locked
             : PollStatus.open,
-        createdBy: createdBy,
+        createdByMemberId: createdByMemberId,
         createdAt: createdAt,
         slots: slots?.map((s) => s.toDomain()).toList() ?? [],
       );
