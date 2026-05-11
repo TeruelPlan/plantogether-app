@@ -9,7 +9,7 @@ void main() {
       final c = CommentModel(
         id: 'c-1',
         destinationId: 'd-1',
-        authorDeviceId: 'dev-1',
+        authorMemberId: 'dev-1',
         authorDisplayName: 'Alice',
         content: 'Looks great!',
         createdAt: DateTime.utc(2026, 4, 25, 10, 30),
@@ -29,7 +29,7 @@ void main() {
       final c = CommentModel(
         id: 'c-2',
         destinationId: 'd-1',
-        authorDeviceId: 'dev-1',
+        authorMemberId: 'dev-1',
         authorDisplayName: '',
         content: 'x',
         createdAt: DateTime.utc(2026, 4, 25, 10, 30),

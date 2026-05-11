@@ -1,3 +1,4 @@
+import '../model/current_member_model.dart';
 import '../model/trip_invitation_model.dart';
 import '../model/trip_member_model.dart';
 import '../model/trip_model.dart';
@@ -30,6 +31,8 @@ abstract class TripRepository {
   Future<TripModel> joinTrip(String tripId, String token);
 
   Future<List<TripMemberModel>> getMembers(String tripId);
+
+  Future<CurrentMemberModel> getCurrentMember(String tripId, {bool forceRefresh = false});
 
   Future<void> removeMember(String tripId, String memberId);
 }

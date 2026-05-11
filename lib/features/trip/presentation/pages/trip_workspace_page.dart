@@ -9,6 +9,8 @@ import '../../../destination/presentation/widgets/destinations_tab.dart';
 import '../../../expense/presentation/page/expenses_tab.dart';
 import '../../../poll/presentation/widgets/dates_tab.dart';
 import '../../domain/model/trip_model.dart';
+import '../../domain/repository/trip_repository.dart';
+import '../bloc/current_member_cubit.dart';
 import '../bloc/trip_detail_bloc.dart';
 import '../bloc/trip_detail_event.dart';
 import '../bloc/trip_detail_state.dart';
@@ -102,8 +104,17 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                 .where((m) => m.isMe)
                 .map((m) => m.displayName)
                 .firstOrNull;
+            final myMemberId = trip.members
+                .where((m) => m.isMe)
+                .map((m) => m.memberId)
+                .firstOrNull;
 
-            return DefaultTabController(
+            return BlocProvider<CurrentMemberCubit>(
+              create: (ctx) => CurrentMemberCubit(
+                ctx.read<TripRepository>(),
+                widget.tripId,
+              )..load(),
+              child: DefaultTabController(
               length: 5,
               child: Scaffold(
                 appBar: AppBar(
@@ -206,12 +217,14 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                       tripId: widget.tripId,
                       isOrganizer: isOrganizer,
                       myDisplayName: myDisplayName,
+                      myMemberId: myMemberId,
                     ),
                     ExpensesTab(tripId: widget.tripId, trip: trip),
                     const Center(child: Text('Tasks')),
                   ],
                 ),
               ),
+            ),
             );
           },
         );

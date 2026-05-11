@@ -40,9 +40,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
             initial: _buildSpinner,
             loading: _buildSpinner,
             error: (message) => _buildError(context, message),
-            loaded: (detail, myDeviceId, _, connectionBanner, _, locking) =>
+            loaded: (detail, myMemberId, _, connectionBanner, _, locking) =>
                 _buildLoaded(
-                    context, detail, myDeviceId, connectionBanner, locking),
+                    context, detail, myMemberId, connectionBanner, locking),
           );
         },
       ),
@@ -133,7 +133,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
   Widget _buildLoaded(
       BuildContext context,
       PollDetailModel detail,
-      String myDeviceId,
+      String myMemberId,
       String? connectionBanner,
       bool locking) {
     final theme = Theme.of(context);
@@ -142,9 +142,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
         ? theme.colorScheme.onSurfaceVariant
         : theme.colorScheme.primary;
     final me = detail.members.firstWhere(
-      (m) => m.deviceId == myDeviceId,
+      (m) => m.tripMemberId == myMemberId,
       orElse: () => const PollMemberModel(
-          deviceId: '', role: 'PARTICIPANT', displayName: ''),
+          tripMemberId: '', role: 'PARTICIPANT', displayName: ''),
     );
     final isOrganizer = me.role == 'ORGANIZER';
 
@@ -176,7 +176,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
         Expanded(
           child: DatePollMatrixWidget(
             detail: detail,
-            myDeviceId: myDeviceId,
+            myMemberId: myMemberId,
             isLocked: isLocked,
             isOrganizer: isOrganizer,
             locking: locking,

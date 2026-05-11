@@ -18,7 +18,7 @@ void main() {
     return CommentModel(
       id: id,
       destinationId: destinationId,
-      authorDeviceId: 'device-1',
+      authorMemberId: 'device-1',
       authorDisplayName: 'Alice',
       content: content,
       createdAt: at ?? DateTime.utc(2026, 4, 25, 10),

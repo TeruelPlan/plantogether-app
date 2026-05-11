@@ -21,7 +21,7 @@ DestinationModel _buildDestination(String id) {
     id: id,
     tripId: 't1',
     name: 'Dest $id',
-    proposedByDeviceId: 'dev',
+    proposedByMemberId: 'dev',
     createdAt: DateTime.utc(2026, 4, 1),
     updatedAt: DateTime.utc(2026, 4, 1),
   );

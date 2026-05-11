@@ -1,3 +1,4 @@
+import '../../domain/model/current_member_model.dart';
 import '../../domain/model/trip_invitation_model.dart';
 import '../../domain/model/trip_member_model.dart';
 import '../../domain/model/trip_model.dart';
@@ -7,8 +8,11 @@ import '../datasource/trip_remote_datasource.dart';
 
 class TripRepositoryImpl implements TripRepository {
   final TripRemoteDatasource _remoteDatasource;
+  final Map<String, CurrentMemberModel> _currentMemberCache = {};
 
   TripRepositoryImpl(this._remoteDatasource);
+
+  void clearCurrentMemberCache() => _currentMemberCache.clear();
 
   @override
   Future<List<TripModel>> listTrips() async {
@@ -80,6 +84,21 @@ class TripRepositoryImpl implements TripRepository {
   Future<List<TripMemberModel>> getMembers(String tripId) async {
     final dtos = await _remoteDatasource.getMembers(tripId);
     return dtos.map((dto) => dto.toDomain()).toList();
+  }
+
+  @override
+  Future<CurrentMemberModel> getCurrentMember(
+    String tripId, {
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh) {
+      final cached = _currentMemberCache[tripId];
+      if (cached != null) return cached;
+    }
+    final dto = await _remoteDatasource.getCurrentMember(tripId);
+    final model = dto.toDomain();
+    _currentMemberCache[tripId] = model;
+    return model;
   }
 
   @override

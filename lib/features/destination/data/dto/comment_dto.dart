@@ -8,7 +8,7 @@ part 'comment_dto.g.dart';
 class CommentDto {
   final String id;
   final String destinationId;
-  final String authorDeviceId;
+  final String authorMemberId;
   final String authorDisplayName;
   final String content;
   final DateTime createdAt;
@@ -16,7 +16,7 @@ class CommentDto {
   const CommentDto({
     required this.id,
     required this.destinationId,
-    required this.authorDeviceId,
+    required this.authorMemberId,
     required this.authorDisplayName,
     required this.content,
     required this.createdAt,
@@ -30,7 +30,7 @@ class CommentDto {
   CommentModel toDomain() => CommentModel(
         id: id,
         destinationId: destinationId,
-        authorDeviceId: authorDeviceId,
+        authorMemberId: authorMemberId,
         authorDisplayName: authorDisplayName,
         content: content,
         createdAt: createdAt,

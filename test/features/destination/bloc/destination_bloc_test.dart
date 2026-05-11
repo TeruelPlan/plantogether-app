@@ -30,7 +30,7 @@ void main() {
     description: 'City of lights',
     estimatedBudget: 1200.0,
     currency: 'EUR',
-    proposedByDeviceId: 'device-1',
+    proposedByMemberId: 'device-1',
     createdAt: DateTime.utc(2026, 4, 1),
     updatedAt: DateTime.utc(2026, 4, 1),
   );

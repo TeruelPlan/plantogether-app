@@ -14,7 +14,7 @@ Expense _make({
   return Expense(
     id: 'exp-1',
     tripId: 'trip-1',
-    paidByDeviceId: 'dev-1',
+    paidByMemberId: 'dev-1',
     amount: 42.0,
     currency: currency,
     category: ExpenseCategory.food,

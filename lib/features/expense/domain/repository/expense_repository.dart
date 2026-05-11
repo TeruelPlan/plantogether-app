@@ -52,7 +52,7 @@ class RecordExpenseInput {
   final String description;
   final SplitMode splitMode;
   final List<ExpenseSplit>? splits;
-  final String? paidByDeviceId;
+  final String? paidByMemberId;
 
   const RecordExpenseInput({
     required this.amount,
@@ -61,6 +61,6 @@ class RecordExpenseInput {
     required this.description,
     this.splitMode = SplitMode.equal,
     this.splits,
-    this.paidByDeviceId,
+    this.paidByMemberId,
   });
 }

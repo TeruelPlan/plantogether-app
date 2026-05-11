@@ -27,7 +27,7 @@ void main() {
   Expense expense(String id) => Expense(
         id: id,
         tripId: tripId,
-        paidByDeviceId: 'device-1',
+        paidByMemberId: 'device-1',
         amount: 50,
         currency: 'EUR',
         category: ExpenseCategory.food,

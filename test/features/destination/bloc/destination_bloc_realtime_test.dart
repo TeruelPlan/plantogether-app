@@ -20,7 +20,7 @@ void main() {
     id: 'dest-1',
     tripId: tripId,
     name: 'Paris',
-    proposedByDeviceId: 'device-1',
+    proposedByMemberId: 'device-1',
     createdAt: DateTime.utc(2026, 4, 1),
     updatedAt: DateTime.utc(2026, 4, 1),
   );

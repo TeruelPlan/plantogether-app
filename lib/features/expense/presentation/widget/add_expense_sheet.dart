@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/security/device_id_service.dart';
 import '../../../trip/domain/model/trip_model.dart';
+import '../../../trip/presentation/bloc/current_member_cubit.dart';
 import '../../domain/entity/expense.dart';
 import '../../domain/repository/expense_repository.dart';
 import '../bloc/expense_bloc.dart';
@@ -17,17 +17,17 @@ Future<void> showAddExpenseSheet(
   required TripModel trip,
 }) {
   final bloc = context.read<ExpenseBloc>();
-  final deviceIdService = context.read<DeviceIdService>();
+  final memberCubit = context.read<CurrentMemberCubit>();
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (_) => RepositoryProvider.value(
-      value: deviceIdService,
-      child: BlocProvider.value(
-        value: bloc,
-        child: _AddExpenseSheet(tripId: tripId, trip: trip),
-      ),
+    builder: (_) => MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: bloc),
+        BlocProvider.value(value: memberCubit),
+      ],
+      child: _AddExpenseSheet(tripId: tripId, trip: trip),
     ),
   );
 }
@@ -48,7 +48,8 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
   final _descriptionController = TextEditingController();
 
   ExpenseCategory _category = ExpenseCategory.food;
-  String? _payerDeviceId;
+  // Holds a trip_member_id (member dropdown value).
+  String? _payerMemberId;
   String? _currency;
   String? _submitErrorMessage;
   bool _recordRequested = false;
@@ -61,12 +62,21 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
   }
 
   Future<void> _initPayer() async {
-    final deviceIdService = context.read<DeviceIdService>();
-    final myId = await deviceIdService.getOrCreateDeviceId();
-    if (mounted) {
-      setState(() {
-        _payerDeviceId = myId;
-      });
+    final cubit = context.read<CurrentMemberCubit>();
+    final state = cubit.state;
+    final memberId = state is CurrentMemberLoaded
+        ? state.member.tripMemberId
+        : null;
+    if (memberId != null) {
+      if (mounted) setState(() => _payerMemberId = memberId);
+      return;
+    }
+    // Cubit not yet loaded (e.g. first launch of the sheet) — trigger and listen.
+    await cubit.load();
+    if (!mounted) return;
+    final loaded = cubit.state;
+    if (loaded is CurrentMemberLoaded) {
+      setState(() => _payerMemberId = loaded.member.tripMemberId);
     }
   }
 
@@ -109,7 +119,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
             category: _category,
             description: _descriptionController.text.trim(),
             splitMode: SplitMode.equal,
-            paidByDeviceId: _payerDeviceId,
+            paidByMemberId: _payerMemberId,
           ),
         ));
   }
@@ -248,10 +258,10 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
                           },
                   ),
                   const SizedBox(height: 12),
-                  if (_payerDeviceId != null && widget.trip.members.isNotEmpty)
+                  if (_payerMemberId != null && widget.trip.members.isNotEmpty)
                     DropdownButtonFormField<String>(
                       key: const ValueKey('expense_payer_dropdown'),
-                      value: _payerDeviceId,
+                      value: _payerMemberId,
                       decoration: const InputDecoration(
                         labelText: 'Who paid?',
                         border: OutlineInputBorder(),
@@ -267,7 +277,7 @@ class _AddExpenseSheetState extends State<_AddExpenseSheet> {
                       onChanged: isSubmitting
                           ? null
                           : (v) {
-                              if (v != null) setState(() => _payerDeviceId = v);
+                              if (v != null) setState(() => _payerMemberId = v);
                             },
                     ),
                   const SizedBox(height: 8),

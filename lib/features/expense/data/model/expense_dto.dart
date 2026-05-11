@@ -6,25 +6,30 @@ part 'expense_dto.g.dart';
 
 @JsonSerializable()
 class ExpenseSplitDto {
-  final String deviceId;
+  final String memberId;
   final double shareAmount;
 
-  const ExpenseSplitDto({required this.deviceId, required this.shareAmount});
+  const ExpenseSplitDto({
+    required this.memberId,
+    required this.shareAmount,
+  });
 
   factory ExpenseSplitDto.fromJson(Map<String, dynamic> json) =>
       _$ExpenseSplitDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$ExpenseSplitDtoToJson(this);
 
-  ExpenseSplit toDomain() =>
-      ExpenseSplit(deviceId: deviceId, shareAmount: shareAmount);
+  ExpenseSplit toDomain() => ExpenseSplit(
+        memberId: memberId,
+        shareAmount: shareAmount,
+      );
 }
 
 @JsonSerializable()
 class ExpenseDto {
   final String id;
   final String tripId;
-  final String paidByDeviceId;
+  final String paidByMemberId;
   final double amount;
   final String currency;
   final String category;
@@ -45,7 +50,7 @@ class ExpenseDto {
   const ExpenseDto({
     required this.id,
     required this.tripId,
-    required this.paidByDeviceId,
+    required this.paidByMemberId,
     required this.amount,
     required this.currency,
     required this.category,
@@ -70,7 +75,7 @@ class ExpenseDto {
   Expense toDomain() => Expense(
         id: id,
         tripId: tripId,
-        paidByDeviceId: paidByDeviceId,
+        paidByMemberId: paidByMemberId,
         amount: amount,
         currency: currency,
         category: ExpenseCategory.fromWire(category),
@@ -99,7 +104,7 @@ class RecordExpenseRequestDto {
   final String? receiptKey;
   final String splitMode;
   final List<SplitInputDto>? splits;
-  final String? paidBy;
+  final String? paidByMemberId;
 
   const RecordExpenseRequestDto({
     required this.amount,
@@ -109,7 +114,7 @@ class RecordExpenseRequestDto {
     this.receiptKey,
     required this.splitMode,
     this.splits,
-    this.paidBy,
+    this.paidByMemberId,
   });
 
   factory RecordExpenseRequestDto.fromJson(Map<String, dynamic> json) =>
@@ -146,10 +151,13 @@ class UpdateExpenseRequestDto {
 
 @JsonSerializable()
 class SplitInputDto {
-  final String deviceId;
+  final String memberId;
   final double shareAmount;
 
-  const SplitInputDto({required this.deviceId, required this.shareAmount});
+  const SplitInputDto({
+    required this.memberId,
+    required this.shareAmount,
+  });
 
   factory SplitInputDto.fromJson(Map<String, dynamic> json) =>
       _$SplitInputDtoFromJson(json);

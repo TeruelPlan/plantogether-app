@@ -8,12 +8,12 @@ part 'vote_response_dto.g.dart';
 class VoteResponseDto {
   final String slotId;
   final String status;
-  final String deviceId;
+  final String tripMemberId;
 
   const VoteResponseDto({
     required this.slotId,
     required this.status,
-    required this.deviceId,
+    required this.tripMemberId,
   });
 
   factory VoteResponseDto.fromJson(Map<String, dynamic> json) =>
@@ -22,15 +22,15 @@ class VoteResponseDto {
   Map<String, dynamic> toJson() => _$VoteResponseDtoToJson(this);
 
   PollVoteModel toDomain() {
-    switch (status.toUpperCase()) {
-      case 'YES':
-        return PollVoteModel(deviceId: deviceId, status: VoteStatus.yes);
-      case 'MAYBE':
-        return PollVoteModel(deviceId: deviceId, status: VoteStatus.maybe);
-      case 'NO':
-        return PollVoteModel(deviceId: deviceId, status: VoteStatus.no);
-      default:
-        throw ArgumentError('Unknown VoteStatus: $status');
-    }
+    final voteStatus = switch (status.toUpperCase()) {
+      'YES' => VoteStatus.yes,
+      'MAYBE' => VoteStatus.maybe,
+      'NO' => VoteStatus.no,
+      _ => throw ArgumentError('Unknown VoteStatus: $status'),
+    };
+    return PollVoteModel(
+      tripMemberId: tripMemberId,
+      status: voteStatus,
+    );
   }
 }
