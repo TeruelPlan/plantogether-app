@@ -3,14 +3,23 @@ import 'dart:io' show Platform;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marionette_flutter/marionette_flutter.dart';
 import 'app.dart';
 import 'core/utils/app_bloc_observer.dart';
 
+/// Enabled with `--dart-define=E2E=true`. Forces the semantics tree on so the
+/// Layer 3 Playwright suite (separate repo) can locate `flt-semantics` nodes by
+/// their stable identifiers.
+const bool isE2E = bool.fromEnvironment('E2E');
+
 void main() async {
   final isFlutterTest = Platform.environment.containsKey('FLUTTER_TEST');
-  if (kDebugMode && !isFlutterTest) {
+  if (isE2E) {
+    WidgetsFlutterBinding.ensureInitialized();
+    SemanticsBinding.instance.ensureSemantics();
+  } else if (kDebugMode && !isFlutterTest) {
     MarionetteBinding.ensureInitialized();
   } else {
     WidgetsFlutterBinding.ensureInitialized();

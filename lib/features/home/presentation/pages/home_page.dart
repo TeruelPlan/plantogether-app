@@ -24,26 +24,32 @@ class HomePage extends StatelessWidget {
           children: [
             const Text('Paste the invitation link you received:'),
             const SizedBox(height: 12),
-            TextField(
-              key: const ValueKey('home_join_link_field'),
-              controller: controller,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: 'https://...',
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  key: const ValueKey('home_join_paste_button'),
-                  icon: const Icon(Icons.paste),
-                  tooltip: 'Paste from clipboard',
-                  onPressed: () async {
-                    final data = await Clipboard.getData(Clipboard.kTextPlain);
-                    if (data?.text != null) {
-                      controller.text = data!.text!;
-                      controller.selection = TextSelection.fromPosition(
-                        TextPosition(offset: controller.text.length),
-                      );
-                    }
-                  },
+            Semantics(
+              identifier: 'home_join_link_field',
+              label: 'home_join_link_field',
+              textField: true,
+              child: TextField(
+                key: const ValueKey('home_join_link_field'),
+                controller: controller,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'https://...',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    key: const ValueKey('home_join_paste_button'),
+                    icon: const Icon(Icons.paste),
+                    tooltip: 'Paste from clipboard',
+                    onPressed: () async {
+                      final data =
+                          await Clipboard.getData(Clipboard.kTextPlain);
+                      if (data?.text != null) {
+                        controller.text = data!.text!;
+                        controller.selection = TextSelection.fromPosition(
+                          TextPosition(offset: controller.text.length),
+                        );
+                      }
+                    },
+                  ),
                 ),
               ),
             ),
@@ -55,20 +61,25 @@ class HomePage extends StatelessWidget {
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel'),
           ),
-          FilledButton(
-            key: const ValueKey('home_join_submit_button'),
-            onPressed: () {
-              final parsed = _parseInviteLink(controller.text.trim());
-              Navigator.of(dialogContext).pop();
-              if (parsed == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Invalid invitation link')),
-                );
-                return;
-              }
-              context.push('/trips/${parsed.$1}/join?token=${parsed.$2}');
-            },
-            child: const Text('Join'),
+          Semantics(
+            identifier: 'home_join_submit_button',
+            label: 'home_join_submit_button',
+            button: true,
+            child: FilledButton(
+              key: const ValueKey('home_join_submit_button'),
+              onPressed: () {
+                final parsed = _parseInviteLink(controller.text.trim());
+                Navigator.of(dialogContext).pop();
+                if (parsed == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Invalid invitation link')),
+                  );
+                  return;
+                }
+                context.push('/trips/${parsed.$1}/join?token=${parsed.$2}');
+              },
+              child: const Text('Join'),
+            ),
           ),
         ],
       ),
@@ -152,11 +163,16 @@ class HomePage extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        key: const ValueKey('home_create_trip_fab'),
-        onPressed: () => context.push(RouteConstants.createTrip),
-        tooltip: 'New Trip',
-        child: const Icon(Icons.add),
+      floatingActionButton: Semantics(
+        identifier: 'home_create_trip_fab',
+        label: 'home_create_trip_fab',
+        button: true,
+        child: FloatingActionButton(
+          key: const ValueKey('home_create_trip_fab'),
+          onPressed: () => context.push(RouteConstants.createTrip),
+          tooltip: 'New Trip',
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }
@@ -219,30 +235,34 @@ class _TripCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: isArchived ? 0.7 : 1.0,
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 8),
-        child: ListTile(
-          title: Row(
-            children: [
-              Expanded(child: Text(trip.title)),
-              if (isArchived)
-                Chip(
-                  label: const Text('ARCHIVED'),
-                  labelStyle: Theme.of(context).textTheme.labelSmall,
-                  visualDensity: VisualDensity.compact,
-                ),
-            ],
+    return Semantics(
+      identifier: 'trip_card_${trip.id}',
+      label: trip.title,
+      button: true,
+      child: Opacity(
+        opacity: isArchived ? 0.7 : 1.0,
+        child: Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: ListTile(
+            title: Row(
+              children: [
+                Expanded(child: Text(trip.title)),
+                if (isArchived)
+                  Chip(
+                    label: const Text('ARCHIVED'),
+                    labelStyle: Theme.of(context).textTheme.labelSmall,
+                    visualDensity: VisualDensity.compact,
+                  ),
+              ],
+            ),
+            subtitle: trip.description != null
+                ? Text(trip.description!,
+                    maxLines: 1, overflow: TextOverflow.ellipsis)
+                : null,
+            trailing: Text('${trip.memberCount} members',
+                style: Theme.of(context).textTheme.bodySmall),
+            onTap: () => context.push('/trips/${trip.id}'),
           ),
-          subtitle: trip.description != null
-              ? Text(trip.description!,
-                  maxLines: 1, overflow: TextOverflow.ellipsis)
-              : null,
-          trailing: Text('${trip.memberCount} members',
-              style: Theme.of(context).textTheme.bodySmall),
-          onTap: () =>
-              context.push('/trips/${trip.id}'),
         ),
       ),
     );
