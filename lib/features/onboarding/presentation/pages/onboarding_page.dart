@@ -54,49 +54,59 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
-                TextFormField(
-                  key: const ValueKey('onboarding_name_field'),
-                  controller: _ctrl,
-                  decoration: InputDecoration(
-                    labelText: 'Display name',
-                    hintText: 'How should others see you?',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                Semantics(
+                  identifier: 'onboarding_name_field',
+                  label: 'onboarding_name_field',
+                  textField: true,
+                  child: TextFormField(
+                    key: const ValueKey('onboarding_name_field'),
+                    controller: _ctrl,
+                    decoration: InputDecoration(
+                      labelText: 'Display name',
+                      hintText: 'How should others see you?',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
+                    onChanged: (_) => setState(() {}),
+                    validator: (value) {
+                      final trimmed = value?.trim() ?? '';
+                      if (trimmed.isEmpty) return 'Display name is required';
+                      if (trimmed.length > 50) return 'Max 50 characters';
+                      return null;
+                    },
                   ),
-                  onChanged: (_) => setState(() {}),
-                  validator: (value) {
-                    final trimmed = value?.trim() ?? '';
-                    if (trimmed.isEmpty) return 'Display name is required';
-                    if (trimmed.length > 50) return 'Max 50 characters';
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
                   height: 48,
-                  child: ElevatedButton(
-                    key: const ValueKey('onboarding_continue_button'),
-                    onPressed: _ctrl.text.trim().isEmpty || _saving
-                        ? null
-                        : _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: cs.primary,
-                      foregroundColor: cs.onPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  child: Semantics(
+                    identifier: 'onboarding_continue_button',
+                    label: 'onboarding_continue_button',
+                    button: true,
+                    child: ElevatedButton(
+                      key: const ValueKey('onboarding_continue_button'),
+                      onPressed: _ctrl.text.trim().isEmpty || _saving
+                          ? null
+                          : _submit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: cs.primary,
+                        foregroundColor: cs.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
+                      child: _saving
+                          ? SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: cs.onPrimary,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text('Get started'),
                     ),
-                    child: _saving
-                        ? SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: cs.onPrimary,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text('Get started'),
                   ),
                 ),
               ],
