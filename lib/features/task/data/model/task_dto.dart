@@ -80,6 +80,18 @@ class TaskDto {
 }
 
 @JsonSerializable(includeIfNull: false)
+class UpdateTaskStatusRequestDto {
+  final String status;
+
+  const UpdateTaskStatusRequestDto({required this.status});
+
+  factory UpdateTaskStatusRequestDto.fromJson(Map<String, dynamic> json) =>
+      _$UpdateTaskStatusRequestDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UpdateTaskStatusRequestDtoToJson(this);
+}
+
+@JsonSerializable(includeIfNull: false)
 class CreateTaskRequestDto {
   final String title;
   final String? description;

@@ -49,7 +49,19 @@ class _TasksTabState extends State<TasksTab> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<TaskBloc, TaskState>(
-      listener: (context, state) {},
+      listener: (context, state) {
+        state.whenOrNull(
+          error: (message) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  message.isNotEmpty ? message : "Couldn't update the task",
+                ),
+              ),
+            );
+          },
+        );
+      },
       builder: (context, state) {
         return state.when(
           initial: () => const Center(child: CircularProgressIndicator()),

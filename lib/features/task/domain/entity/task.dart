@@ -76,3 +76,13 @@ extension TaskSubtaskStats on Task {
   int get subtaskDoneCount =>
       subtasks.where((s) => s.status == TaskStatus.done).length;
 }
+
+extension TaskStatusCycle on TaskStatus {
+  TaskStatus get next {
+    return switch (this) {
+      TaskStatus.todo => TaskStatus.inProgress,
+      TaskStatus.inProgress => TaskStatus.done,
+      TaskStatus.done => TaskStatus.todo,
+    };
+  }
+}
