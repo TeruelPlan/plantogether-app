@@ -16,6 +16,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(FakeCreateTaskInput());
+    registerFallbackValue(TaskStatus.todo);
   });
 
   setUp(() {
@@ -128,6 +129,138 @@ void main() {
         const TaskState.loading(),
         TaskState.loaded(tasks: [task]),
       ],
+    );
+
+    // UpdateTaskStatus: optimistic update then reload on success.
+    // The TODO → IN_PROGRESS transition keeps completedAt null, so exact
+    // equality works without a predicate matcher.
+    blocTest<TaskBloc, TaskState>(
+      'updateStatus_optimistic_thenReload',
+      build: () {
+        when(() => mockRepository.updateStatus(any(), any()))
+            .thenAnswer((_) async => task.copyWith(status: TaskStatus.inProgress));
+        when(() => mockRepository.list(tripId))
+            .thenAnswer((_) async => [task.copyWith(status: TaskStatus.inProgress)]);
+        return TaskBloc(mockRepository);
+      },
+      seed: () => TaskState.loaded(tasks: [task]),
+      act: (bloc) => bloc.add(
+        const UpdateTaskStatus(
+          tripId: tripId,
+          taskId: 'task-1',
+          next: TaskStatus.inProgress,
+        ),
+      ),
+      expect: () => [
+        // Optimistic: status flipped to inProgress, completedAt stays null.
+        TaskState.loaded(
+          tasks: [task.copyWith(status: TaskStatus.inProgress)],
+        ),
+        // After LoadTasks reload.
+        const TaskState.loading(),
+        TaskState.loaded(
+          tasks: [task.copyWith(status: TaskStatus.inProgress)],
+        ),
+      ],
+    );
+
+    // UpdateTaskStatus: repository throws → rollback + error emitted.
+    blocTest<TaskBloc, TaskState>(
+      'updateStatus_failure_rollsBack',
+      build: () {
+        when(() => mockRepository.updateStatus(any(), any()))
+            .thenThrow(Exception('Network error'));
+        return TaskBloc(mockRepository);
+      },
+      seed: () => TaskState.loaded(tasks: [task]),
+      act: (bloc) => bloc.add(
+        const UpdateTaskStatus(
+          tripId: tripId,
+          taskId: 'task-1',
+          next: TaskStatus.inProgress,
+        ),
+      ),
+      expect: () => [
+        // Optimistic state (inProgress, completedAt null).
+        TaskState.loaded(
+          tasks: [task.copyWith(status: TaskStatus.inProgress)],
+        ),
+        // Rollback to original.
+        TaskState.loaded(tasks: [task]),
+        // Error surfaced.
+        const TaskState.error(message: 'Network error'),
+      ],
+    );
+
+    // UpdateTaskStatus: when taskId belongs to a subtask, only the nested
+    // task's status is updated; the parent is unchanged.
+    blocTest<TaskBloc, TaskState>(
+      'updateStatus_onSubtask_targetsNestedTask',
+      build: () {
+        when(() => mockRepository.updateStatus(any(), any())).thenAnswer(
+          (_) async => task.copyWith(status: TaskStatus.inProgress),
+        );
+        when(() => mockRepository.list(tripId)).thenAnswer((_) async => [task]);
+        return TaskBloc(mockRepository);
+      },
+      seed: () {
+        final subtask = Task(
+          id: 'sub-1',
+          tripId: tripId,
+          parentTaskId: 'task-1',
+          title: 'Pack towels',
+          status: TaskStatus.todo,
+          priority: TaskPriority.medium,
+          createdBy: 'device-1',
+          createdAt: DateTime.utc(2026, 5, 1),
+          updatedAt: DateTime.utc(2026, 5, 1),
+        );
+        final parentWithSub = task.copyWith(subtasks: [subtask]);
+        return TaskState.loaded(tasks: [parentWithSub]);
+      },
+      act: (bloc) => bloc.add(
+        const UpdateTaskStatus(
+          tripId: tripId,
+          taskId: 'sub-1',
+          next: TaskStatus.inProgress,
+        ),
+      ),
+      expect: () {
+        final updatedSubtask = Task(
+          id: 'sub-1',
+          tripId: tripId,
+          parentTaskId: 'task-1',
+          title: 'Pack towels',
+          status: TaskStatus.inProgress,
+          priority: TaskPriority.medium,
+          createdBy: 'device-1',
+          createdAt: DateTime.utc(2026, 5, 1),
+          updatedAt: DateTime.utc(2026, 5, 1),
+        );
+        final parentUnchanged = task.copyWith(subtasks: [updatedSubtask]);
+        return [
+          // Optimistic: only the subtask status is flipped.
+          TaskState.loaded(tasks: [parentUnchanged]),
+          // Reload sequence.
+          const TaskState.loading(),
+          TaskState.loaded(tasks: [task]),
+        ];
+      },
+    );
+
+    // UpdateTaskStatus: when not in loaded state, event is a no-op.
+    blocTest<TaskBloc, TaskState>(
+      'updateStatus_whenNotLoaded_isNoOp',
+      build: () => TaskBloc(mockRepository),
+      // seed is initial state (default)
+      act: (bloc) => bloc.add(
+        const UpdateTaskStatus(
+          tripId: tripId,
+          taskId: 'task-1',
+          next: TaskStatus.inProgress,
+        ),
+      ),
+      expect: () => <TaskState>[],
     );
   });
 }

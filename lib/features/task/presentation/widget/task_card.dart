@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../trip/domain/model/trip_model.dart';
 import '../../domain/entity/task.dart';
+import 'task_status_toggle.dart';
 
 class TaskCard extends StatelessWidget {
   final Task task;
@@ -44,17 +45,6 @@ class TaskCard extends StatelessWidget {
     }
   }
 
-  String _statusLabel(TaskStatus status) {
-    switch (status) {
-      case TaskStatus.todo:
-        return 'To Do';
-      case TaskStatus.inProgress:
-        return 'In Progress';
-      case TaskStatus.done:
-        return 'Done';
-    }
-  }
-
   String? _formatDeadline(DateTime? deadline) {
     if (deadline == null) return null;
     final now = DateTime.now();
@@ -87,9 +77,11 @@ class TaskCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            // Priority + status row
+            // Priority + status toggle row
             Row(
               children: [
+                TaskStatusToggle(task: task, tripId: trip.id),
+                const SizedBox(width: 4),
                 Chip(
                   key: ValueKey('task_priority_${task.id}'),
                   label: Text(
@@ -102,15 +94,6 @@ class TaskCard extends StatelessWidget {
                       BorderSide(color: _priorityColor(task.priority), width: 1),
                   padding: EdgeInsets.zero,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _statusLabel(task.status),
-                  key: ValueKey('task_status_${task.id}'),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
                 ),
               ],
             ),
@@ -147,19 +130,11 @@ class TaskCard extends StatelessWidget {
               ...task.subtasks.map(
                 (subtask) => Padding(
                   key: ValueKey('subtask_tile_${subtask.id}'),
-                  padding: const EdgeInsets.only(left: 16),
+                  padding: const EdgeInsets.only(left: 8),
                   child: Row(
                     children: [
-                      Icon(
-                        subtask.status == TaskStatus.done
-                            ? Icons.check_circle
-                            : Icons.radio_button_unchecked,
-                        size: 16,
-                        color: subtask.status == TaskStatus.done
-                            ? Colors.green
-                            : Colors.grey[500],
-                      ),
-                      const SizedBox(width: 8),
+                      TaskStatusToggle(task: subtask, tripId: trip.id),
+                      const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           subtask.title,

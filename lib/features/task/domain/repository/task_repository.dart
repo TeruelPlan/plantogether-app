@@ -5,6 +5,7 @@ import '../entity/task.dart';
 abstract class TaskRepository {
   Future<Task> create(String tripId, CreateTaskInput input);
   Future<List<Task>> list(String tripId);
+  Future<Task> updateStatus(String taskId, TaskStatus next);
 }
 
 class CreateTaskInput extends Equatable {

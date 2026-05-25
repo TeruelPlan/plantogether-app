@@ -28,3 +28,18 @@ class CreateTask extends TaskEvent {
   @override
   List<Object?> get props => [tripId, input];
 }
+
+class UpdateTaskStatus extends TaskEvent {
+  final String tripId;
+  final String taskId;
+  final TaskStatus next;
+
+  const UpdateTaskStatus({
+    required this.tripId,
+    required this.taskId,
+    required this.next,
+  });
+
+  @override
+  List<Object?> get props => [tripId, taskId, next];
+}

@@ -38,6 +38,16 @@ class TaskRepositoryImpl implements TaskRepository {
     }
   }
 
+  @override
+  Future<Task> updateStatus(String taskId, TaskStatus next) async {
+    try {
+      final dto = await _remoteDatasource.updateStatus(taskId, next);
+      return dto.toDomain();
+    } on DioException catch (e) {
+      throw _mapError(e, fallback: 'Failed to update task status');
+    }
+  }
+
   Exception _mapError(DioException e, {required String fallback}) {
     final statusCode = e.response?.statusCode;
     final data = e.response?.data;
