@@ -105,5 +105,29 @@ void main() {
         const TaskState.error(message: 'Server error'),
       ],
     );
+
+    blocTest<TaskBloc, TaskState>(
+      'createSubtask_success_reloads',
+      build: () {
+        when(() => mockRepository.create(any(), any()))
+            .thenAnswer((_) async => task);
+        when(() => mockRepository.list(tripId))
+            .thenAnswer((_) async => [task]);
+        return TaskBloc(mockRepository);
+      },
+      act: (bloc) => bloc.add(
+        CreateTask(
+          tripId: tripId,
+          input: const CreateTaskInput(
+            title: 'Pack towels',
+            parentTaskId: 'task-1',
+          ),
+        ),
+      ),
+      expect: () => [
+        const TaskState.loading(),
+        TaskState.loaded(tasks: [task]),
+      ],
+    );
   });
 }

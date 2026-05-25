@@ -13,6 +13,7 @@ Future<void> showAddTaskSheet(
   required String tripId,
   required TripModel trip,
   required TaskBloc taskBloc,
+  String? parentTaskId,
 }) {
   return showModalBottomSheet(
     context: context,
@@ -20,7 +21,11 @@ Future<void> showAddTaskSheet(
     useSafeArea: true,
     builder: (_) => BlocProvider.value(
       value: taskBloc,
-      child: _AddTaskSheet(tripId: tripId, trip: trip),
+      child: _AddTaskSheet(
+        tripId: tripId,
+        trip: trip,
+        parentTaskId: parentTaskId,
+      ),
     ),
   );
 }
@@ -28,8 +33,13 @@ Future<void> showAddTaskSheet(
 class _AddTaskSheet extends StatefulWidget {
   final String tripId;
   final TripModel trip;
+  final String? parentTaskId;
 
-  const _AddTaskSheet({required this.tripId, required this.trip});
+  const _AddTaskSheet({
+    required this.tripId,
+    required this.trip,
+    this.parentTaskId,
+  });
 
   @override
   State<_AddTaskSheet> createState() => _AddTaskSheetState();
@@ -66,6 +76,7 @@ class _AddTaskSheetState extends State<_AddTaskSheet> {
               assigneeId: _assigneeId,
               priority: _priority,
               deadline: _deadline,
+              parentTaskId: widget.parentTaskId,
             ),
           ),
         );
@@ -123,7 +134,7 @@ class _AddTaskSheetState extends State<_AddTaskSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'New task',
+                    widget.parentTaskId != null ? 'Add subtask' : 'New task',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 16),
@@ -137,7 +148,9 @@ class _AddTaskSheetState extends State<_AddTaskSheet> {
                     maxLength: 255,
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) {
-                        return 'Task title is required';
+                        return widget.parentTaskId != null
+                            ? 'Subtask title is required'
+                            : 'Task title is required';
                       }
                       return null;
                     },

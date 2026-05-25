@@ -5,6 +5,22 @@ import '../../domain/entity/task.dart';
 part 'task_dto.g.dart';
 
 @JsonSerializable()
+class SubtaskSummaryDto {
+  final int total;
+  final int done;
+
+  const SubtaskSummaryDto({
+    required this.total,
+    required this.done,
+  });
+
+  factory SubtaskSummaryDto.fromJson(Map<String, dynamic> json) =>
+      _$SubtaskSummaryDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SubtaskSummaryDtoToJson(this);
+}
+
+@JsonSerializable()
 class TaskDto {
   final String id;
   final String tripId;
@@ -19,6 +35,8 @@ class TaskDto {
   final DateTime? completedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final List<TaskDto>? subtasks;
+  final SubtaskSummaryDto? subtaskSummary;
 
   const TaskDto({
     required this.id,
@@ -34,6 +52,8 @@ class TaskDto {
     this.completedAt,
     required this.createdAt,
     required this.updatedAt,
+    this.subtasks,
+    this.subtaskSummary,
   });
 
   factory TaskDto.fromJson(Map<String, dynamic> json) =>
@@ -55,6 +75,7 @@ class TaskDto {
         completedAt: completedAt,
         createdAt: createdAt,
         updatedAt: updatedAt,
+        subtasks: subtasks?.map((s) => s.toDomain()).toList() ?? [],
       );
 }
 
@@ -65,6 +86,7 @@ class CreateTaskRequestDto {
   final String? assigneeId;
   final String? priority;
   final String? deadline;
+  final String? parentTaskId;
 
   const CreateTaskRequestDto({
     required this.title,
@@ -72,6 +94,7 @@ class CreateTaskRequestDto {
     this.assigneeId,
     this.priority,
     this.deadline,
+    this.parentTaskId,
   });
 
   Map<String, dynamic> toJson() => _$CreateTaskRequestDtoToJson(this);

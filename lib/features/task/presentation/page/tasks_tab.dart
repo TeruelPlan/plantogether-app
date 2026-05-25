@@ -74,7 +74,11 @@ class _TasksTabState extends State<TasksTab> {
             ),
           ),
           loaded: (tasks) {
-            if (tasks.isEmpty) {
+            // Only render top-level tasks; subtasks are nested inside TaskCard.
+            final topLevel =
+                tasks.where((t) => t.parentTaskId == null).toList();
+
+            if (topLevel.isEmpty) {
               return Stack(
                 children: [
                   Center(
@@ -118,13 +122,21 @@ class _TasksTabState extends State<TasksTab> {
                 ListView.builder(
                   key: const ValueKey('tasks_list'),
                   padding: const EdgeInsets.only(bottom: 80),
-                  itemCount: tasks.length,
+                  itemCount: topLevel.length,
                   itemBuilder: (context, index) {
-                    final task = tasks[index];
+                    final task = topLevel[index];
+                    final taskBloc = context.read<TaskBloc>();
                     return TaskCard(
                       key: ValueKey('task_card_${task.id}'),
                       task: task,
                       trip: widget.trip,
+                      onAddSubtask: () => showAddTaskSheet(
+                        context,
+                        tripId: widget.tripId,
+                        trip: widget.trip,
+                        taskBloc: taskBloc,
+                        parentTaskId: task.id,
+                      ),
                     );
                   },
                 ),

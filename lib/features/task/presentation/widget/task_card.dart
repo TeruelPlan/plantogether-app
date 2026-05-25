@@ -6,11 +6,13 @@ import '../../domain/entity/task.dart';
 class TaskCard extends StatelessWidget {
   final Task task;
   final TripModel trip;
+  final VoidCallback? onAddSubtask;
 
   const TaskCard({
     super.key,
     required this.task,
     required this.trip,
+    this.onAddSubtask,
   });
 
   String _resolveDisplayName(String? assigneeId) {
@@ -65,21 +67,27 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isTopLevel = task.parentTaskId == null;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: ListTile(
-        title: Text(
-          task.title,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            decoration:
-                task.status == TaskStatus.done ? TextDecoration.lineThrough : null,
-          ),
-        ),
-        subtitle: Column(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Title row
+            Text(
+              task.title,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                decoration: task.status == TaskStatus.done
+                    ? TextDecoration.lineThrough
+                    : null,
+              ),
+            ),
             const SizedBox(height: 4),
+            // Priority + status row
             Row(
               children: [
                 Chip(
@@ -88,8 +96,10 @@ class TaskCard extends StatelessWidget {
                     _priorityLabel(task.priority),
                     style: const TextStyle(fontSize: 11),
                   ),
-                  backgroundColor: _priorityColor(task.priority).withOpacity(0.15),
-                  side: BorderSide(color: _priorityColor(task.priority), width: 1),
+                  backgroundColor:
+                      _priorityColor(task.priority).withOpacity(0.15),
+                  side:
+                      BorderSide(color: _priorityColor(task.priority), width: 1),
                   padding: EdgeInsets.zero,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -124,9 +134,65 @@ class TaskCard extends StatelessWidget {
                 ),
               ),
             ],
+            // Subtask count indicator
+            if (task.subtasks.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                '${task.subtaskDoneCount}/${task.subtaskTotal} subtasks done',
+                key: ValueKey('task_subtask_count_${task.id}'),
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 4),
+              // Subtask rows
+              ...task.subtasks.map(
+                (subtask) => Padding(
+                  key: ValueKey('subtask_tile_${subtask.id}'),
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        subtask.status == TaskStatus.done
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                        size: 16,
+                        color: subtask.status == TaskStatus.done
+                            ? Colors.green
+                            : Colors.grey[500],
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          subtask.title,
+                          style: TextStyle(
+                            fontSize: 13,
+                            decoration: subtask.status == TaskStatus.done
+                                ? TextDecoration.lineThrough
+                                : null,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            // "Add subtask" button — only on top-level tasks
+            if (isTopLevel) ...[
+              const SizedBox(height: 4),
+              TextButton(
+                key: ValueKey('add_subtask_button_${task.id}'),
+                onPressed: onAddSubtask,
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(0, 32),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text('+ Add subtask'),
+              ),
+            ],
           ],
         ),
-        isThreeLine: true,
       ),
     );
   }
