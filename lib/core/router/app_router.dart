@@ -5,6 +5,8 @@ import '../../features/destination/domain/repository/destination_repository.dart
 import '../../features/destination/presentation/bloc/destination_bloc.dart';
 import '../../features/expense/domain/repository/expense_repository.dart';
 import '../../features/expense/presentation/bloc/expense_bloc.dart';
+import '../../features/task/domain/repository/task_repository.dart';
+import '../../features/task/presentation/bloc/task_bloc.dart';
 import '../../features/poll/domain/repository/poll_repository.dart';
 import '../../features/poll/presentation/bloc/poll_bloc.dart';
 import '../../features/poll/presentation/bloc/poll_detail_bloc.dart';
@@ -135,6 +137,9 @@ class AppRouter {
                 ),
                 BlocProvider(
                   create: (ctx) => ExpenseBloc(ctx.read<ExpenseRepository>()),
+                ),
+                BlocProvider(
+                  create: (ctx) => TaskBloc(ctx.read<TaskRepository>()),
                 ),
               ],
               child: TripWorkspacePage(tripId: tripId),
