@@ -67,5 +67,12 @@ sealed class Task with _$Task {
     DateTime? completedAt,
     required DateTime createdAt,
     required DateTime updatedAt,
+    @Default([]) List<Task> subtasks,
   }) = _Task;
+}
+
+extension TaskSubtaskStats on Task {
+  int get subtaskTotal => subtasks.length;
+  int get subtaskDoneCount =>
+      subtasks.where((s) => s.status == TaskStatus.done).length;
 }

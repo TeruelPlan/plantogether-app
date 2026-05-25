@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 import '../entity/task.dart';
 
 abstract class TaskRepository {
@@ -5,12 +7,13 @@ abstract class TaskRepository {
   Future<List<Task>> list(String tripId);
 }
 
-class CreateTaskInput {
+class CreateTaskInput extends Equatable {
   final String title;
   final String? description;
   final String? assigneeId;
   final TaskPriority priority;
   final DateTime? deadline;
+  final String? parentTaskId;
 
   const CreateTaskInput({
     required this.title,
@@ -18,5 +21,10 @@ class CreateTaskInput {
     this.assigneeId,
     this.priority = TaskPriority.medium,
     this.deadline,
+    this.parentTaskId,
   });
+
+  @override
+  List<Object?> get props =>
+      [title, description, assigneeId, priority, deadline, parentTaskId];
 }

@@ -19,6 +19,7 @@ class TaskRepositoryImpl implements TaskRepository {
         assigneeId: input.assigneeId,
         priority: input.priority.toWire(),
         deadline: input.deadline?.toUtc().toIso8601String(),
+        parentTaskId: input.parentTaskId,
       );
       final dto = await _remoteDatasource.create(tripId, body);
       return dto.toDomain();
