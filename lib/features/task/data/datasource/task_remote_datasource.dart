@@ -15,9 +15,17 @@ class TaskRemoteDatasource {
     return TaskDto.fromJson(response.data as Map<String, dynamic>);
   }
 
-  Future<List<TaskDto>> list(String tripId) async {
+  Future<List<TaskDto>> list(
+    String tripId, {
+    String? assignee,
+    TaskStatus? status,
+  }) async {
     final response = await _dioClient.dio.get(
       '/api/v1/trips/$tripId/tasks',
+      queryParameters: {
+        if (assignee != null) 'assignee': assignee,
+        if (status != null) 'status': status.toWire(),
+      },
     );
     final items = response.data as List<dynamic>;
     return items

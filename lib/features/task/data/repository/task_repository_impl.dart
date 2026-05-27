@@ -29,9 +29,17 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
-  Future<List<Task>> list(String tripId) async {
+  Future<List<Task>> list(
+    String tripId, {
+    String? assignee,
+    TaskStatus? status,
+  }) async {
     try {
-      final dtos = await _remoteDatasource.list(tripId);
+      final dtos = await _remoteDatasource.list(
+        tripId,
+        assignee: assignee,
+        status: status,
+      );
       return dtos.map((d) => d.toDomain()).toList();
     } on DioException catch (e) {
       throw _mapError(e, fallback: 'Failed to load tasks');

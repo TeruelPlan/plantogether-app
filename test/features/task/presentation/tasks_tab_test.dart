@@ -129,4 +129,71 @@ void main() {
     // Only one modal bottom sheet should be present in the widget tree.
     expect(find.byType(BottomSheet), findsOneWidget);
   });
+
+  testWidgets('statusChip_todo_dispatchesApplyTaskFilters', (tester) async {
+    final bloc = MockTaskBloc();
+    whenListen(
+      bloc,
+      Stream.fromIterable([TaskState.loaded(tasks: [sampleTask])]),
+      initialState: TaskState.loaded(tasks: [sampleTask]),
+    );
+
+    await tester.pumpWidget(buildWidget(bloc));
+    await tester.pump();
+
+    // The filter chip row is rendered above the task list when tasks are present.
+    // Use warnIfMissed: false in case the chip is in a scrollable area.
+    await tester.tap(
+      find.byKey(const ValueKey('task_filter_status_todo')),
+      warnIfMissed: false,
+    );
+    await tester.pump();
+
+    verify(
+      () => bloc.add(
+        const ApplyTaskFilters(
+          tripId: tripId,
+          status: TaskStatus.todo,
+        ),
+      ),
+    ).called(1);
+  });
+
+  testWidgets(
+      'emptyFilteredState_rendersNoMatchMessage_and_clearFiltersButton',
+      (tester) async {
+    final bloc = MockTaskBloc();
+
+    // Use a stream controller to manually control state transitions.
+    final controller = StreamController<TaskState>();
+
+    whenListen(
+      bloc,
+      controller.stream,
+      initialState: TaskState.loaded(tasks: [sampleTask]),
+    );
+
+    await tester.pumpWidget(buildWidget(bloc));
+    await tester.pump();
+
+    // Tap the To Do chip to set _activeStatus = TaskStatus.todo in local state.
+    await tester.tap(
+      find.byKey(const ValueKey('task_filter_status_todo')),
+      warnIfMissed: false,
+    );
+    await tester.pump();
+
+    // Now simulate the bloc returning empty tasks (filter applied server-side).
+    controller.add(const TaskState.loaded(tasks: []));
+    await tester.pump();
+
+    // With a local filter active and empty results, must show "no match" message.
+    expect(find.text('No tasks match your filters'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('task_filter_clear_button')),
+      findsOneWidget,
+    );
+
+    await controller.close();
+  });
 }

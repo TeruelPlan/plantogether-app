@@ -34,6 +34,7 @@ import '../../features/trip/presentation/pages/create_trip_page.dart';
 import '../../features/trip/presentation/pages/invite_page.dart';
 import '../../features/trip/presentation/pages/member_list_page.dart';
 import '../../features/trip/presentation/pages/trip_preview_page.dart';
+import '../../features/task/presentation/page/my_tasks_page.dart';
 import '../../features/trip/presentation/pages/trip_workspace_page.dart';
 
 class _OnboardingNotifier extends ChangeNotifier {
@@ -90,6 +91,11 @@ class AppRouter {
         GoRoute(
           path: RouteConstants.home,
           builder: (ctx, state) => const HomePage(),
+        ),
+        GoRoute(
+          path: RouteConstants.myTasks,
+          name: 'myTasks',
+          builder: (ctx, state) => const MyTasksPage(),
         ),
         GoRoute(
           path: RouteConstants.profile,

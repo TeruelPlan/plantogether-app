@@ -13,6 +13,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     on<LoadTasks>(_onLoad, transformer: droppable());
     on<CreateTask>(_onCreate, transformer: droppable());
     on<UpdateTaskStatus>(_onUpdateStatus, transformer: droppable());
+    on<ApplyTaskFilters>(_onApplyFilters, transformer: restartable());
   }
 
   Future<void> _onLoad(LoadTasks event, Emitter<TaskState> emit) async {
@@ -88,6 +89,23 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       }).toList();
       return task.copyWith(subtasks: updatedSubtasks);
     }).toList();
+  }
+
+  Future<void> _onApplyFilters(
+    ApplyTaskFilters event,
+    Emitter<TaskState> emit,
+  ) async {
+    emit(const TaskState.loading());
+    try {
+      final tasks = await _repository.list(
+        event.tripId,
+        assignee: event.assignee,
+        status: event.status,
+      );
+      emit(TaskState.loaded(tasks: tasks));
+    } on Exception catch (e) {
+      emit(TaskState.error(message: _readableMessage(e)));
+    }
   }
 
   String _readableMessage(Exception e) {

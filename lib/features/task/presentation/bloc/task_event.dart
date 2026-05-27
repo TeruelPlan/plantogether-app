@@ -43,3 +43,18 @@ class UpdateTaskStatus extends TaskEvent {
   @override
   List<Object?> get props => [tripId, taskId, next];
 }
+
+class ApplyTaskFilters extends TaskEvent {
+  final String tripId;
+  final String? assignee;
+  final TaskStatus? status;
+
+  const ApplyTaskFilters({
+    required this.tripId,
+    this.assignee,
+    this.status,
+  });
+
+  @override
+  List<Object?> get props => [tripId, assignee, status];
+}

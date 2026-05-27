@@ -24,13 +24,14 @@ void main() {
   });
 
   const tripId = 'trip-1';
+  const deviceId = 'device-1';
   final task = Task(
     id: 'task-1',
     tripId: tripId,
     title: 'Buy sunscreen',
     status: TaskStatus.todo,
     priority: TaskPriority.medium,
-    createdBy: 'device-1',
+    createdBy: deviceId,
     createdAt: DateTime.utc(2026, 5, 1),
     updatedAt: DateTime.utc(2026, 5, 1),
   );
@@ -261,6 +262,116 @@ void main() {
         ),
       ),
       expect: () => <TaskState>[],
+    );
+
+    blocTest<TaskBloc, TaskState>(
+      'applyFilters_assignee_callsRepoWithAssignee',
+      build: () {
+        when(
+          () => mockRepository.list(
+            tripId,
+            assignee: deviceId,
+            status: null,
+          ),
+        ).thenAnswer((_) async => [task]);
+        return TaskBloc(mockRepository);
+      },
+      act: (bloc) => bloc.add(
+        const ApplyTaskFilters(tripId: tripId, assignee: deviceId),
+      ),
+      expect: () => [
+        const TaskState.loading(),
+        TaskState.loaded(tasks: [task]),
+      ],
+      verify: (_) {
+        verify(
+          () => mockRepository.list(
+            tripId,
+            assignee: deviceId,
+            status: null,
+          ),
+        ).called(1);
+      },
+    );
+
+    blocTest<TaskBloc, TaskState>(
+      'applyFilters_status_callsRepoWithStatus',
+      build: () {
+        when(
+          () => mockRepository.list(
+            tripId,
+            assignee: null,
+            status: TaskStatus.done,
+          ),
+        ).thenAnswer((_) async => [task]);
+        return TaskBloc(mockRepository);
+      },
+      act: (bloc) => bloc.add(
+        const ApplyTaskFilters(tripId: tripId, status: TaskStatus.done),
+      ),
+      expect: () => [
+        const TaskState.loading(),
+        TaskState.loaded(tasks: [task]),
+      ],
+      verify: (_) {
+        verify(
+          () => mockRepository.list(
+            tripId,
+            assignee: null,
+            status: TaskStatus.done,
+          ),
+        ).called(1);
+      },
+    );
+
+    blocTest<TaskBloc, TaskState>(
+      'applyFilters_both_callsRepoWithBoth',
+      build: () {
+        when(
+          () => mockRepository.list(
+            tripId,
+            assignee: deviceId,
+            status: TaskStatus.inProgress,
+          ),
+        ).thenAnswer((_) async => [task]);
+        return TaskBloc(mockRepository);
+      },
+      act: (bloc) => bloc.add(
+        const ApplyTaskFilters(
+          tripId: tripId,
+          assignee: deviceId,
+          status: TaskStatus.inProgress,
+        ),
+      ),
+      expect: () => [
+        const TaskState.loading(),
+        TaskState.loaded(tasks: [task]),
+      ],
+    );
+
+    blocTest<TaskBloc, TaskState>(
+      'applyFilters_emptyResult_emitsLoadedEmpty',
+      build: () {
+        when(
+          () => mockRepository.list(
+            tripId,
+            assignee: deviceId,
+            status: TaskStatus.todo,
+          ),
+        ).thenAnswer((_) async => []);
+        return TaskBloc(mockRepository);
+      },
+      act: (bloc) => bloc.add(
+        const ApplyTaskFilters(
+          tripId: tripId,
+          assignee: deviceId,
+          status: TaskStatus.todo,
+        ),
+      ),
+      expect: () => [
+        const TaskState.loading(),
+        const TaskState.loaded(tasks: []),
+      ],
     );
   });
 }
