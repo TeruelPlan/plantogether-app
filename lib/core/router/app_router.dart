@@ -5,6 +5,8 @@ import '../../features/destination/domain/repository/destination_repository.dart
 import '../../features/destination/presentation/bloc/destination_bloc.dart';
 import '../../features/expense/domain/repository/expense_repository.dart';
 import '../../features/expense/presentation/bloc/expense_bloc.dart';
+import '../../features/task/domain/repository/task_repository.dart';
+import '../../features/task/presentation/bloc/task_bloc.dart';
 import '../../features/poll/domain/repository/poll_repository.dart';
 import '../../features/poll/presentation/bloc/poll_bloc.dart';
 import '../../features/poll/presentation/bloc/poll_detail_bloc.dart';
@@ -32,6 +34,7 @@ import '../../features/trip/presentation/pages/create_trip_page.dart';
 import '../../features/trip/presentation/pages/invite_page.dart';
 import '../../features/trip/presentation/pages/member_list_page.dart';
 import '../../features/trip/presentation/pages/trip_preview_page.dart';
+import '../../features/task/presentation/page/my_tasks_page.dart';
 import '../../features/trip/presentation/pages/trip_workspace_page.dart';
 
 class _OnboardingNotifier extends ChangeNotifier {
@@ -90,6 +93,11 @@ class AppRouter {
           builder: (ctx, state) => const HomePage(),
         ),
         GoRoute(
+          path: RouteConstants.myTasks,
+          name: 'myTasks',
+          builder: (ctx, state) => const MyTasksPage(),
+        ),
+        GoRoute(
           path: RouteConstants.profile,
           name: 'profile',
           builder: (ctx, state) => BlocProvider(
@@ -135,6 +143,9 @@ class AppRouter {
                 ),
                 BlocProvider(
                   create: (ctx) => ExpenseBloc(ctx.read<ExpenseRepository>()),
+                ),
+                BlocProvider(
+                  create: (ctx) => TaskBloc(ctx.read<TaskRepository>()),
                 ),
               ],
               child: TripWorkspacePage(tripId: tripId),

@@ -8,6 +8,7 @@ import '../../../destination/presentation/bloc/destination_state.dart';
 import '../../../destination/presentation/widgets/destinations_tab.dart';
 import '../../../expense/presentation/page/expenses_tab.dart';
 import '../../../poll/presentation/widgets/dates_tab.dart';
+import '../../../task/presentation/page/tasks_tab.dart';
 import '../../domain/model/trip_model.dart';
 import '../../domain/repository/trip_repository.dart';
 import '../bloc/current_member_cubit.dart';
@@ -220,7 +221,7 @@ class _TripWorkspacePageState extends State<TripWorkspacePage> {
                       myMemberId: myMemberId,
                     ),
                     ExpensesTab(tripId: widget.tripId, trip: trip),
-                    const Center(child: Text('Tasks')),
+                    TasksTab(tripId: widget.tripId, trip: trip),
                   ],
                 ),
               ),

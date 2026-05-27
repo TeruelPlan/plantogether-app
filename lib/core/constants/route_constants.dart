@@ -10,4 +10,5 @@ class RouteConstants {
   static const tripPreview = '/trips/:id/join';
   static const memberList = '/trips/:id/members';
   static const pollDetail = '/trips/:tripId/polls/:pollId';
+  static const myTasks = '/my-tasks';
 }

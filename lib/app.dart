@@ -22,6 +22,9 @@ import 'features/trip/domain/repository/trip_repository.dart';
 import 'features/expense/data/datasource/expense_remote_datasource.dart';
 import 'features/expense/data/repository/expense_repository_impl.dart';
 import 'features/expense/domain/repository/expense_repository.dart';
+import 'features/task/data/datasource/task_remote_datasource.dart';
+import 'features/task/data/repository/task_repository_impl.dart';
+import 'features/task/domain/repository/task_repository.dart';
 
 class PlanTogetherApp extends StatelessWidget {
   const PlanTogetherApp({super.key});
@@ -64,6 +67,12 @@ class PlanTogetherApp extends StatelessWidget {
         RepositoryProvider<ExpenseRepository>(
             create: (ctx) => ExpenseRepositoryImpl(
                 ctx.read<ExpenseRemoteDatasource>())),
+        RepositoryProvider(
+            create: (ctx) =>
+                TaskRemoteDatasource(ctx.read<DioClient>())),
+        RepositoryProvider<TaskRepository>(
+            create: (ctx) => TaskRepositoryImpl(
+                ctx.read<TaskRemoteDatasource>())),
       ],
       child: BlocProvider(
         create: (ctx) =>

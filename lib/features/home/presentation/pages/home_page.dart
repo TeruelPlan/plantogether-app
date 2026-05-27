@@ -100,6 +100,12 @@ class HomePage extends StatelessWidget {
         title: const Text('PlanTogether'),
         actions: [
           IconButton(
+            key: const ValueKey('home_my_tasks_button'),
+            icon: const Icon(Icons.checklist),
+            tooltip: 'My tasks',
+            onPressed: () => context.push(RouteConstants.myTasks),
+          ),
+          IconButton(
             key: const ValueKey('home_join_link_button'),
             icon: const Icon(Icons.link),
             tooltip: 'Join with link',
