@@ -7,6 +7,9 @@ import 'package:mocktail/mocktail.dart';
 import 'package:plantogether_app/core/security/device_id_service.dart';
 import 'package:plantogether_app/features/expense/domain/entity/expense.dart';
 import 'package:plantogether_app/features/expense/domain/repository/expense_repository.dart';
+import 'package:plantogether_app/features/expense/presentation/bloc/balance/balance_bloc.dart';
+import 'package:plantogether_app/features/expense/presentation/bloc/balance/balance_event.dart';
+import 'package:plantogether_app/features/expense/presentation/bloc/balance/balance_state.dart';
 import 'package:plantogether_app/features/expense/presentation/bloc/expense_bloc.dart';
 import 'package:plantogether_app/features/expense/presentation/page/expenses_tab.dart';
 import 'package:plantogether_app/features/expense/presentation/widget/expense_card.dart';
@@ -23,6 +26,16 @@ class MockDeviceIdService extends Mock implements DeviceIdService {}
 class MockTripRepository extends Mock implements TripRepository {}
 
 class FakeRecordExpenseInput extends Fake implements RecordExpenseInput {}
+
+/// Minimal real BalanceBloc that swallows events and stays in
+/// [BalanceState.initial] — the tab dispatches LoadBalance in initState and only
+/// reads the state, so a no-op handler is enough here.
+class _StubBalanceBloc extends Bloc<BalanceEvent, BalanceState>
+    implements BalanceBloc {
+  _StubBalanceBloc() : super(const BalanceState.initial()) {
+    on<BalanceEvent>((_, __) {});
+  }
+}
 
 void main() {
   late MockExpenseRepository mockRepository;
@@ -95,10 +108,12 @@ void main() {
         providers: [
           RepositoryProvider<DeviceIdService>.value(value: mockDeviceIdService),
           RepositoryProvider<TripRepository>.value(value: mockTripRepository),
+          RepositoryProvider<ExpenseRepository>.value(value: mockRepository),
         ],
         child: MultiBlocProvider(
           providers: [
             BlocProvider.value(value: bloc),
+            BlocProvider<BalanceBloc>.value(value: _StubBalanceBloc()),
             BlocProvider.value(value: memberCubit),
           ],
           child: ExpensesTab(tripId: tripId, trip: sampleTrip),

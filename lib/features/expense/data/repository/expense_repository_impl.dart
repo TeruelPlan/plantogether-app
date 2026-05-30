@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../domain/entity/expense.dart';
+import '../../domain/entity/expense_breakdown.dart';
 import '../../domain/entity/expense_submit_error.dart';
 import '../../domain/repository/expense_repository.dart';
 import '../datasource/expense_remote_datasource.dart';
@@ -84,6 +85,16 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       await _remoteDatasource.delete(expenseId);
     } on DioException catch (e) {
       throw _mapModificationError(e, fallback: 'Failed to delete expense');
+    }
+  }
+
+  @override
+  Future<ExpenseBreakdown> getBreakdown(String tripId) async {
+    try {
+      final dto = await _remoteDatasource.getBreakdown(tripId);
+      return dto.toDomain();
+    } on DioException catch (e) {
+      throw _mapListError(e);
     }
   }
 

@@ -3,13 +3,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../trip/domain/model/trip_model.dart';
 import '../../../trip/presentation/bloc/current_member_cubit.dart';
+import '../../domain/repository/expense_repository.dart';
+import '../bloc/balance/balance_bloc.dart';
+import '../bloc/balance/balance_event.dart';
+import '../bloc/balance/balance_state.dart';
+import '../bloc/breakdown/expense_breakdown_bloc.dart';
+import '../bloc/breakdown/expense_breakdown_event.dart';
 import '../bloc/expense_bloc.dart';
 import '../bloc/expense_event.dart';
 import '../bloc/expense_state.dart';
 import '../widget/add_expense_sheet.dart';
 import '../widget/confirm_delete_dialog.dart';
 import '../widget/edit_expense_sheet.dart';
+import '../widget/expense_balance_banner.dart';
 import '../widget/expense_card.dart';
+import 'expense_breakdown_page.dart';
+import 'settlement_page.dart';
 
 class ExpensesTab extends StatefulWidget {
   final String tripId;
@@ -35,6 +44,38 @@ class _ExpensesTabState extends State<ExpensesTab> {
     bloc.state.maybeWhen(
       initial: () => bloc.add(LoadExpenses(widget.tripId)),
       orElse: () {},
+    );
+    final balanceBloc = context.read<BalanceBloc>();
+    balanceBloc.state.maybeWhen(
+      initial: () => balanceBloc.add(LoadBalance(widget.tripId)),
+      orElse: () {},
+    );
+  }
+
+  void _openSettlement(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: context.read<BalanceBloc>()),
+            BlocProvider.value(value: context.read<CurrentMemberCubit>()),
+          ],
+          child: SettlementPage(tripId: widget.tripId, trip: widget.trip),
+        ),
+      ),
+    );
+  }
+
+  void _openBreakdown(BuildContext context) {
+    final repository = context.read<ExpenseRepository>();
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider(
+          create: (_) => ExpenseBreakdownBloc(repository)
+            ..add(LoadBreakdown(widget.tripId)),
+          child: ExpenseBreakdownPage(tripId: widget.tripId),
+        ),
+      ),
     );
   }
 
@@ -193,25 +234,47 @@ class _ExpensesTabState extends State<ExpensesTab> {
           final myMemberId = memberState is CurrentMemberLoaded
               ? memberState.member.tripMemberId
               : null;
-          return ListView.builder(
-            key: const ValueKey('expenses_list'),
-            itemCount: expenses.length,
-            itemBuilder: (context, index) {
-              final expense = expenses[index];
-              final canModify =
-                  _canModify(expense.paidByMemberId, myMemberId);
-              return ExpenseCard(
-                expense: expense,
-                payerDisplayName:
-                    _resolveDisplayName(expense.paidByMemberId),
-                canModify: canModify,
-                onEdit:
-                    canModify ? () => _openEdit(context, expense) : null,
-                onDelete: canModify
-                    ? () => _confirmDelete(context, expense)
-                    : null,
-              );
-            },
+          return Column(
+            children: [
+              ExpenseBalanceBanner(
+                myMemberId: myMemberId,
+                onTap: () => _openSettlement(context),
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: TextButton.icon(
+                    key: const ValueKey('expenses_breakdown_button'),
+                    onPressed: () => _openBreakdown(context),
+                    icon: const Icon(Icons.pie_chart_outline),
+                    label: const Text('Breakdown'),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  key: const ValueKey('expenses_list'),
+                  itemCount: expenses.length,
+                  itemBuilder: (context, index) {
+                    final expense = expenses[index];
+                    final canModify =
+                        _canModify(expense.paidByMemberId, myMemberId);
+                    return ExpenseCard(
+                      expense: expense,
+                      payerDisplayName:
+                          _resolveDisplayName(expense.paidByMemberId),
+                      canModify: canModify,
+                      onEdit:
+                          canModify ? () => _openEdit(context, expense) : null,
+                      onDelete: canModify
+                          ? () => _confirmDelete(context, expense)
+                          : null,
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),

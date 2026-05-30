@@ -1,5 +1,6 @@
 import '../../../../core/data/page_dto.dart';
 import '../../../../core/network/dio_client.dart';
+import '../model/expense_breakdown_dto.dart';
 import '../model/expense_dto.dart';
 
 class ExpenseRemoteDatasource {
@@ -47,5 +48,12 @@ class ExpenseRemoteDatasource {
       response.data as Map<String, dynamic>,
       (json) => ExpenseDto.fromJson(json! as Map<String, dynamic>),
     );
+  }
+
+  Future<ExpenseBreakdownDto> getBreakdown(String tripId) async {
+    final response = await _dioClient.dio.get(
+      '/api/v1/trips/$tripId/expenses/breakdown',
+    );
+    return ExpenseBreakdownDto.fromJson(response.data as Map<String, dynamic>);
   }
 }

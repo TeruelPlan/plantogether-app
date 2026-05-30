@@ -19,8 +19,11 @@ import 'features/poll/domain/repository/poll_repository.dart';
 import 'features/trip/data/datasource/trip_remote_datasource.dart';
 import 'features/trip/data/repository/trip_repository_impl.dart';
 import 'features/trip/domain/repository/trip_repository.dart';
+import 'features/expense/data/datasource/balance_remote_datasource.dart';
 import 'features/expense/data/datasource/expense_remote_datasource.dart';
+import 'features/expense/data/repository/balance_repository_impl.dart';
 import 'features/expense/data/repository/expense_repository_impl.dart';
+import 'features/expense/domain/repository/balance_repository.dart';
 import 'features/expense/domain/repository/expense_repository.dart';
 
 class PlanTogetherApp extends StatelessWidget {
@@ -64,6 +67,12 @@ class PlanTogetherApp extends StatelessWidget {
         RepositoryProvider<ExpenseRepository>(
             create: (ctx) => ExpenseRepositoryImpl(
                 ctx.read<ExpenseRemoteDatasource>())),
+        RepositoryProvider(
+            create: (ctx) =>
+                BalanceRemoteDatasource(ctx.read<DioClient>())),
+        RepositoryProvider<BalanceRepository>(
+            create: (ctx) =>
+                BalanceRepositoryImpl(ctx.read<BalanceRemoteDatasource>())),
       ],
       child: BlocProvider(
         create: (ctx) =>
