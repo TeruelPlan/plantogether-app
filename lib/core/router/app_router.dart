@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/destination/domain/repository/destination_repository.dart';
 import '../../features/destination/presentation/bloc/destination_bloc.dart';
+import '../../features/expense/domain/repository/balance_repository.dart';
 import '../../features/expense/domain/repository/expense_repository.dart';
+import '../../features/expense/presentation/bloc/balance/balance_bloc.dart';
 import '../../features/expense/presentation/bloc/expense_bloc.dart';
 import '../../features/poll/domain/repository/poll_repository.dart';
 import '../../features/poll/presentation/bloc/poll_bloc.dart';
@@ -135,6 +137,9 @@ class AppRouter {
                 ),
                 BlocProvider(
                   create: (ctx) => ExpenseBloc(ctx.read<ExpenseRepository>()),
+                ),
+                BlocProvider(
+                  create: (ctx) => BalanceBloc(ctx.read<BalanceRepository>()),
                 ),
               ],
               child: TripWorkspacePage(tripId: tripId),

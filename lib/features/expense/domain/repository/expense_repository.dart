@@ -1,10 +1,12 @@
 import '../entity/expense.dart';
+import '../entity/expense_breakdown.dart';
 
 abstract class ExpenseRepository {
   Future<Expense> record(String tripId, RecordExpenseInput input);
   Future<ExpensePage> list(String tripId, {int page = 0, int size = 20});
   Future<Expense> updateExpense(String expenseId, UpdateExpenseInput input);
   Future<void> deleteExpense(String expenseId);
+  Future<ExpenseBreakdown> getBreakdown(String tripId);
 }
 
 class UpdateExpenseInput {

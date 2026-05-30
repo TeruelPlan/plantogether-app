@@ -51,6 +51,7 @@ dependencies:
 
   # Integration test driver (Marionette MCP)
   marionette_flutter: ^0.5.0
+  fl_chart: ^1.2.0
 
 dev_dependencies:
   flutter_test:
